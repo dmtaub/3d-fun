@@ -2,6 +2,14 @@
 window.THREE = require('three.js')
 require('three.terrain.js')
 
+linearDamping = 0.5
+angularDamping = 0.8
+jumpVelocity = 22
+linearFactor = 0.3
+rotationalFactor = 10
+maxVector = new (THREE.Vector3)(20, 5000, 20)
+minVector = maxVector.clone().multiplyScalar(-1)
+
 class App
   constructor: ->
     console.log "hello coffee"
@@ -79,18 +87,10 @@ class App
     requestAnimationFrame @render
     @scene.simulate()
     @player = @createShape()
-    linearDamping = 0.5
-    angularDamping = 0.8
     @player.setDamping linearDamping, angularDamping
     # @player2 = @createShape();
-    JUMP = 22
-    v3 = undefined
-    u3 = undefined
-    contactGround = undefined
-    linearFactor = 0.3
-    rotationalFactor = 10
-    maxVector = new (THREE.Vector3)(20, 5000, 20)
-    minVector = maxVector.clone().multiplyScalar(-1)
+    @scene.addEventListener 'update', @moveWithKeys
+    return
 
   moveWithKeys: =>
     # // arrow keys
@@ -138,16 +138,13 @@ class App
         u3.x = 0
         u3.z = 0
     if kd.SPACE.isDown() and contactGround
-      v3.y = JUMP
+      v3.y = jumpVelocity
     else
     u3.clamp minVector, maxVector
     v3.clamp minVector, maxVector
     @player.setAngularVelocity u3
     @player.setLinearVelocity v3
     return
-
-  @scene.addEventListener 'update', @moveWithKeys
-  return
 
   render: =>
     requestAnimationFrame @render
