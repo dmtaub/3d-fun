@@ -15,6 +15,12 @@ class App
     console.log "hello coffee"
     @initScene()
 
+    window.addEventListener( 'resize', (() =>
+        @camera.aspect = window.innerWidth / window.innerHeight
+        @camera.updateProjectionMatrix()
+        @renderer.setSize( window.innerWidth, window.innerHeight );
+      ), false )
+
   initScene: =>
     TWEEN.start()
     @renderer = new (THREE.WebGLRenderer)(antialias: true)
@@ -42,12 +48,13 @@ class App
         @player = @createShape()
         @scene.add @player
       return
+
     @camera = new (THREE.PerspectiveCamera)(35, window.innerWidth / window.innerHeight, 1, 1000)
     @camera.position.set 60, 50, 60
     @camera.lookAt @scene.position
     @scene.add @camera
     # Light
-    light = new (THREE.DirectionalLight)(0xFFFFFF)
+    light = new THREE.DirectionalLight(0xFFFFFF)
     light.position.set 20, 40, -15
     light.target.position.copy @scene.position
     light.castShadow = true
@@ -62,14 +69,17 @@ class App
     light.shadowDarkness = .7
     @scene.add light
     # Loader
-    loader = new (THREE.TextureLoader)
+    # loader = new THREE.TextureLoader
     # Materials
-    ground_material = Physijs.createMaterial(new (THREE.MeshLambertMaterial)(map: loader.load('images/grass.png')), .8, .4)
-    ground_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping
-    ground_material.map.repeat.set 2.5, 2.5
+    ground_material = Physijs.createMaterial(new THREE.MeshLambertMaterial(color: 0x2194ce))
+
+    # OLD WAY:
+    # ground_material = Physijs.createMaterial(new (THREE.MeshLambertMaterial)(map: loader.load('images/grass.png')), .8, .4)
+    # ground_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping
+    # ground_material.map.repeat.set 2.5, 2.5
     # Ground
     # NoiseGen = new SimplexNoise
-    ground_geometry = new (THREE.PlaneGeometry)(75, 75, 50, 50)
+    ground_geometry = new THREE.PlaneGeometry(75, 75, 50, 50)
     # fun!
     # i = 0
     # while i < ground_geometry.vertices.length
@@ -80,7 +90,7 @@ class App
     # ground_geometry.computeVertexNormals()
     # If your plane is not square as far as face count then the HeightfieldMesh
     # takes two more arguments at the end: # of x faces and # of y faces that were passed to THREE.PlaneMaterial
-    ground = new (Physijs.HeightfieldMesh)(ground_geometry, ground_material, 0, 50, 50)
+    ground = new Physijs.HeightfieldMesh(ground_geometry, ground_material, 0, 50, 50)
     ground.rotation.x = Math.PI / -2
     ground.receiveShadow = true
     @scene.add ground
@@ -158,17 +168,18 @@ class App
 
     doCreateShape = =>
       shape = undefined
-      material = new (THREE.MeshLambertMaterial)(
+      material = new THREE.MeshLambertMaterial(
         opacity: 0
-        transparent: true)
-      shape = new (Physijs.SphereMesh)(sphere_geometry, material, undefined, restitution: Math.random() * 1.5)
+        transparent: true
+      )
+      shape = new Physijs.SphereMesh(sphere_geometry, material, undefined, restitution: Math.random() * 1.5)
       shape.material.color.setRGB Math.random() * 100 / 100, Math.random() * 100 / 100, Math.random() * 100 / 100
       shape.castShadow = true
-      shape.receiveShadow = true
+      #shape.receiveShadow = true
       shape.position.set Math.random() * 30 - 15, 20, Math.random() * 30 - 15
       shape.rotation.set Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI
       @scene.add shape
-      new (TWEEN.Tween)(shape.material).to({ opacity: 1 }, 500).start()
+      new TWEEN.Tween(shape.material).to({ opacity: 1 }, 1500).start()
       shape
 
     doCreateShape()
