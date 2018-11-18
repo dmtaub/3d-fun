@@ -15,6 +15,8 @@
     "brunch": "^2.10.17",
     "clean-css-brunch": "^2",
     "coffee-script-brunch": "^2.10.2",
+    "three.js": "^0.77.1",
+    "three.terrain.js": "^1.6.0",
     "uglify-js-brunch": "^2"
   }
 }
