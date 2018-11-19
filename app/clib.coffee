@@ -69,7 +69,7 @@ class App
     # Loader
     # loader = new THREE.TextureLoader
     # Materials
-    ground_material = Physijs.createMaterial(new THREE.MeshLambertMaterial(color: 0x2194ce))
+    ground_material = Physijs.createMaterial(new THREE.MeshLambertMaterial(color: 0x2194ce, wireframe:true))
 
     # OLD WAY:
     # ground_material = Physijs.createMaterial(new (THREE.MeshLambertMaterial)(map: loader.load('images/grass.png')), .8, .4)
@@ -193,9 +193,9 @@ class App
     maxHeight: 20
     minHeight: 20
     constructor: (scene) ->
-      @addDefault(scene)
+      #@addDefault(scene)
       #@addSky(scene)
-      #@addEarth(scene)
+      @addEarth(scene)
 
     addDefault: (scene) =>
       @material = new THREE.MeshBasicMaterial(color: 0x5566aa)
@@ -206,7 +206,7 @@ class App
       geo = @terrainScene.children[0].geometry
       # Add randomly distributed foliage
       decoScene = THREE.Terrain.ScatterMeshes(geo,
-        mesh: new (THREE.Mesh)(new THREE.CylinderGeometry(2, 2, 12, 6))
+        mesh: new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 12, 6))
         w: @xS
         h: @yS
         spread: 0.02
@@ -220,7 +220,8 @@ class App
         skyDome = new THREE.Mesh(new THREE.SphereGeometry(8192/12, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.5), new (THREE.MeshBasicMaterial)(
           map: t1
           side: THREE.BackSide
-          fog: false))
+          fog: false)
+        )
         skyDome.position.y = 0#-99
         skyDome.rotation.x = Math.PI
         scene.add skyDome
@@ -245,14 +246,14 @@ class App
     addEarth: (scene) =>
       loader = GenTerrain.TextureLoader
       loader.load 'img/sand1.jpg', (t1) =>
-        #t1.wrapS = t1.wrapT = THREE.RepeatWrapping
-        sand = new THREE.Mesh(
-          new THREE.PlaneBufferGeometry(@xSize, @ySize, 64, 64)
-          new THREE.MeshLambertMaterial(map: t1)
-        )
-        sand.position.y = -1
-        sand.rotation.x = -0.5 * Math.PI
-        scene.add sand
+        # t1.wrapS = t1.wrapT = THREE.RepeatWrapping
+        # sand = new THREE.Mesh(
+        #   new THREE.PlaneBufferGeometry(@xSize, @ySize, 64, 64)
+        #   new THREE.MeshLambertMaterial(map: t1)
+        # )
+        # sand.position.y = -@minHeight-0.01 # prevent zfighting
+        # sand.rotation.x = -0.5 * Math.PI
+        # scene.add sand
         loader.load 'img/grass1.jpg', (t2) =>
           loader.load 'img/stone1.jpg', (t3) =>
             loader.load 'img/snow1.jpg', (t4) =>
