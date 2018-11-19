@@ -42,7 +42,7 @@ class App
     @scene.addEventListener 'update', =>
       @scene.simulate undefined, 1
       # physics_stats.update()
-      if @player.position.y < -10
+      if @player.position.y < -20
         @scene.remove @player
         @player = @createShape()
         @scene.add @player
@@ -69,7 +69,7 @@ class App
     # Loader
     # loader = new THREE.TextureLoader
     # Materials
-    ground_material = Physijs.createMaterial(new THREE.MeshLambertMaterial(color: 0x2194ce, wireframe:true))
+    #ground_material = Physijs.createMaterial(new THREE.MeshLambertMaterial(color: 0x2194ce, wireframe:true))
 
     # OLD WAY:
     # ground_material = Physijs.createMaterial(new (THREE.MeshLambertMaterial)(map: loader.load('images/grass.png')), .8, .4)
@@ -77,8 +77,15 @@ class App
     # ground_material.map.repeat.set 2.5, 2.5
     # Ground
     # NoiseGen = new SimplexNoise
-    ground = new GenTerrain(@scene)
-    ground_geometry = new THREE.PlaneGeometry(75, 75, 50, 50)
+    ground = new GenTerrain(@scene, =>
+      requestAnimationFrame @render
+      @scene.simulate()
+      @player = @createShape()
+      @player.setDamping linearDamping, angularDamping
+      # @player2 = @createShape();
+      @scene.addEventListener 'update', @moveWithKeys
+    )
+    # ground_geometry = new THREE.PlaneGeometry(75, 75, 50, 50)
     # fun!
     # i = 0
     # while i < ground_geometry.vertices.length
@@ -89,16 +96,11 @@ class App
     # ground_geometry.computeVertexNormals()
     # If your plane is not square as far as face count then the HeightfieldMesh
     # takes two more arguments at the end: # of x faces and # of y faces that were passed to THREE.PlaneMaterial
-    ground = new Physijs.HeightfieldMesh(ground_geometry, ground_material, 0, 50, 50)
-    ground.rotation.x = Math.PI / -2
-    ground.receiveShadow = true
-    @scene.add ground
-    requestAnimationFrame @render
-    @scene.simulate()
-    @player = @createShape()
-    @player.setDamping linearDamping, angularDamping
-    # @player2 = @createShape();
-    @scene.addEventListener 'update', @moveWithKeys
+    # ground = new Physijs.HeightfieldMesh(ground_geometry, ground_material, 0, 50, 50)
+    # ground.rotation.x = Math.PI / -2
+    # ground.receiveShadow = true
+    # @scene.add ground
+
     return
 
   moveWithKeys: =>
@@ -192,10 +194,10 @@ class App
     ySize: 128
     maxHeight: 20
     minHeight: 20
-    constructor: (scene) ->
+    constructor: (scene, @afterLoad) ->
       #@addDefault(scene)
       #@addSky(scene)
-      @addEarth(scene)
+      @addEarth(scene, @afterLoad)
 
     addDefault: (scene) =>
       @material = new THREE.MeshBasicMaterial(color: 0x5566aa)
@@ -231,7 +233,7 @@ class App
         easing: THREE.Terrain.Linear
         frequency: 2.5
         heightmap: THREE.Terrain.DiamondSquare
-        material: @material
+        material: @material or new THREE.MeshLambertMaterial(color: 0x2194ce)
         maxHeight: @maxHeight
         minHeight: -@minHeight
         steps: 10
@@ -239,13 +241,42 @@ class App
         xSegments: @xS
         xSize: @xSize
         ySegments: @yS
-        ySize: @ySize)
-      scene.remove(@terrainScene)
+        ySize: @ySize
+        #turbulent: true
+      )
+      scene.remove(@terrainScene) if @terrainScene
+      scene.remove(ground) if ground
+
+      ground_material = Physijs.createMaterial(new THREE.MeshBasicMaterial(
+        color: 0xffffff
+        transparent: true
+        opacity: 0.02
+        wireframe: true
+      ))
+
+      ground_geometry = @terrainScene.children[0].geometry
+      console.log(ground_geometry)
+      ground_geometry.computeFaceNormals()
+      ground_geometry.computeVertexNormals()
+      ground = new Physijs.HeightfieldMesh(
+        ground_geometry
+        ground_material
+        0
+        @xS
+        @yS
+      )
+      ground.rotation.x = Math.PI / -2
+      # doesn't work w/ basicMaterial
+      @terrainScene.children[0].receiveShadow = true
+
+      scene.add(ground)
       scene.add @terrainScene
 
-    addEarth: (scene) =>
+
+    addEarth: (scene, cb) =>
       loader = GenTerrain.TextureLoader
       loader.load 'img/sand1.jpg', (t1) =>
+        # TODO: use this layer to determine when ball goes off the terrain
         # t1.wrapS = t1.wrapT = THREE.RepeatWrapping
         # sand = new THREE.Mesh(
         #   new THREE.PlaneBufferGeometry(@xSize, @ySize, 64, 64)
@@ -288,5 +319,6 @@ class App
                 }
               ])
               @regenerate(scene)
+              cb() if cb
 
 module.exports = App
