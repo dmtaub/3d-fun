@@ -48,9 +48,9 @@ class App
         @player = @createShape()
         @scene.add @player
       return
-
+    x=2.5
     @camera = new (THREE.PerspectiveCamera)(35, window.innerWidth / window.innerHeight, 1, 1000)
-    @camera.position.set 60, 50, 60
+    @camera.position.set 60*x, 50*x, 60*x
     @camera.lookAt @scene.position
     @scene.add @camera
     # Light
@@ -58,15 +58,14 @@ class App
     light.position.set 20, 40, -15
     light.target.position.copy @scene.position
     light.castShadow = true
-    light.shadowCameraLeft = -60
-    light.shadowCameraTop = -60
-    light.shadowCameraRight = 60
-    light.shadowCameraBottom = 60
-    light.shadowCameraNear = 20
-    light.shadowCameraFar = 200
-    light.shadowBias = -.0001
-    light.shadowMapWidth = light.shadowMapHeight = 2048
-    light.shadowDarkness = .7
+    light.shadow.camera.left = -60
+    light.shadow.camera.top = -60
+    light.shadow.camera.right = 60
+    light.shadow.camera.bottom = 60
+    light.shadow.camera.near = 20
+    light.shadow.camera.far = 200
+    light.shadow.bias = -.0001
+    light.shadow.mapSize.width = light.shadow.mapSize.height = 2048
     @scene.add light
     # Loader
     # loader = new THREE.TextureLoader
@@ -79,6 +78,7 @@ class App
     # ground_material.map.repeat.set 2.5, 2.5
     # Ground
     # NoiseGen = new SimplexNoise
+    ground = new GenTerrain(@scene)
     ground_geometry = new THREE.PlaneGeometry(75, 75, 50, 50)
     # fun!
     # i = 0
@@ -184,5 +184,109 @@ class App
 
     doCreateShape()
 
+  class GenTerrain
+    # Generate a terrain
+    @TextureLoader: new THREE.TextureLoader()
+    xS: 63
+    yS: 63
+    xSize: 128
+    ySize: 128
+    maxHeight: 20
+    minHeight: 20
+    constructor: (scene) ->
+      @addDefault(scene)
+      #@addSky(scene)
+      #@addEarth(scene)
+
+    addDefault: (scene) =>
+      @material = new THREE.MeshBasicMaterial(color: 0x5566aa)
+      @regenerate(scene)
+
+    scatterMeshes: =>
+      # Get the geometry of the terrain across which you want to scatter meshes
+      geo = @terrainScene.children[0].geometry
+      # Add randomly distributed foliage
+      decoScene = THREE.Terrain.ScatterMeshes(geo,
+        mesh: new (THREE.Mesh)(new THREE.CylinderGeometry(2, 2, 12, 6))
+        w: @xS
+        h: @yS
+        spread: 0.02
+        randomness: Math.random)
+      @terrainScene.add decoScene
+
+    addSky: (scene) =>
+      GenTerrain.TextureLoader.load('img/sky1.jpg', (t1) ->
+        t1.minFilter = THREE.LinearFilter
+        # Texture is not a power-of-two size; use smoother interpolation.
+        skyDome = new THREE.Mesh(new THREE.SphereGeometry(8192/12, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.5), new (THREE.MeshBasicMaterial)(
+          map: t1
+          side: THREE.BackSide
+          fog: false))
+        skyDome.position.y = 0#-99
+        skyDome.rotation.x = Math.PI
+        scene.add skyDome
+      )
+    regenerate: (scene) =>
+      @terrainScene = THREE.Terrain(
+        easing: THREE.Terrain.Linear
+        frequency: 2.5
+        heightmap: THREE.Terrain.DiamondSquare
+        material: @material
+        maxHeight: @maxHeight
+        minHeight: -@minHeight
+        steps: 10
+        useBufferGeometry: false
+        xSegments: @xS
+        xSize: @xSize
+        ySegments: @yS
+        ySize: @ySize)
+      scene.remove(@terrainScene)
+      scene.add @terrainScene
+
+    addEarth: (scene) =>
+      loader = GenTerrain.TextureLoader
+      loader.load 'img/sand1.jpg', (t1) =>
+        #t1.wrapS = t1.wrapT = THREE.RepeatWrapping
+        sand = new THREE.Mesh(
+          new THREE.PlaneBufferGeometry(@xSize, @ySize, 64, 64)
+          new THREE.MeshLambertMaterial(map: t1)
+        )
+        sand.position.y = -1
+        sand.rotation.x = -0.5 * Math.PI
+        scene.add sand
+        loader.load 'img/grass1.jpg', (t2) =>
+          loader.load 'img/stone1.jpg', (t3) =>
+            loader.load 'img/snow1.jpg', (t4) =>
+              # t2.repeat.x = t2.repeat.y = 2;
+              @material = THREE.Terrain.generateBlendedMaterial([
+                { texture: t1 }
+                {
+                  texture: t2
+                  levels: [
+                    -80
+                    -35
+                    20
+                    50
+                  ]
+                }
+                {
+                  texture: t3
+                  levels: [
+                    20
+                    50
+                    60
+                    85
+                  ]
+                }
+                {
+                  texture: t4
+                  glsl: '1.0 - smoothstep(65.0 + smoothstep(-256.0, 256.0, vPosition.x) * 10.0, 80.0, vPosition.z)'
+                }
+                {
+                  texture: t3
+                  glsl: 'slope > 0.7853981633974483 ? 0.2 : 1.0 - smoothstep(0.47123889803846897, 0.7853981633974483, slope) + 0.2'
+                }
+              ])
+              @regenerate(scene)
 
 module.exports = App
