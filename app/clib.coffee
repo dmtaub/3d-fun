@@ -1,5 +1,4 @@
 # needs to be global for terrain to work
-window.THREE = require('three.js')
 require('three.terrain.js')
 
 linearDamping = 0.5
@@ -7,7 +6,7 @@ angularDamping = 0.8
 jumpVelocity = 22
 linearFactor = 0.3
 rotationalFactor = 10
-maxVector = new (THREE.Vector3)(20, 5000, 20)
+maxVector = new THREE.Vector3(20, 5000, 20)
 minVector = maxVector.clone().multiplyScalar(-1)
 
 class App

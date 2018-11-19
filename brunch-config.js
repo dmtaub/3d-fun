@@ -14,6 +14,6 @@ exports.files = {
 
 exports.npm = {
   globals:{
-    'THREE': 'three.js'
+    'THREE': 'three'
   }
 };
