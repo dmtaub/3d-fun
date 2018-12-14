@@ -4,8 +4,8 @@ require('three.terrain.js')
 linearDamping = 0.5
 angularDamping = 0.8
 jumpVelocity = 22
-linearFactor = 0.3
-rotationalFactor = 10
+linearFactor = 0.6
+rotationalFactor = 20
 maxVector = new THREE.Vector3(20, 5000, 20)
 minVector = maxVector.clone().multiplyScalar(-1)
 
@@ -45,6 +45,7 @@ class App
     @renderer = new (THREE.WebGLRenderer)(antialias: true)
     @renderer.setSize window.innerWidth, window.innerHeight
     @renderer.shadowMap.enabled = true
+    #renderer.shadowMap.type = THREE.PCFSoftShadowMap
     @renderer.shadowMapSoft = true
     document.getElementById('viewport').appendChild @renderer.domElement
     # render_stats = new Stats
@@ -57,11 +58,17 @@ class App
     # physics_stats.domElement.style.top = '50px'
     # physics_stats.domElement.style.zIndex = 100
     # document.getElementById('viewport').appendChild physics_stats.domElement
-    @scene = new (Physijs.Scene)(fixedTimeStep: 1 / 120)
-    @scene.setGravity new (THREE.Vector3)(0, -80, 0)
+    @scene = new (Physijs.Scene)(fixedTimeStep: 1 / 60)
+    @scene.setGravity new (THREE.Vector3)(0, -40, 0)
     @scene.addEventListener 'update', =>
       @scene.simulate undefined, 1
       # physics_stats.update()
+      if @playerCamera
+        x = @player.position.x+20
+        y = @player.position.y+20
+        z = @player.position.z+20
+        @camera.position.set(x,y,z)
+        @camera.lookAt @player.position
       if @player.position.y < -20
         @scene.remove @player
         @player = @createShape()
@@ -72,6 +79,15 @@ class App
     @camera.position.set 60*x, 50*x, 60*x
     @camera.lookAt @scene.position
     @scene.add @camera
+    @playerCamera = false
+    kd.ESC.up ()=>
+      if @playerCamera
+        @playerCamera = false
+        @camera.position.set 60*x, 50*x, 60*x
+        @camera.lookAt @scene.position
+      else
+        @playerCamera = true
+
     # Light
     light = new THREE.DirectionalLight(0xFFFFFF)
     light.position.set 20, 40, -15
@@ -170,7 +186,7 @@ class App
         u3.z = 0
     if kd.SPACE.isDown() and contactGround
       v3.y = jumpVelocity
-    else
+
     u3.clamp minVector, maxVector
     v3.clamp minVector, maxVector
     @player.setAngularVelocity u3
