@@ -9,6 +9,26 @@ rotationalFactor = 10
 maxVector = new THREE.Vector3(20, 5000, 20)
 minVector = maxVector.clone().multiplyScalar(-1)
 
+brown = 0x875f2d
+
+randomIntBetween = (a, b) ->
+  range = (b - a) + 1
+  b - Math.round(Math.random() * range - 0.5)
+
+class Tree
+  weight: 9
+  barkColor: brown
+  fallOver: (speedOfBall) ->
+    console.log("OUCH!")
+  constructor: ->
+    @weight = randomIntBetween(6, 10)
+
+class PineTree extends Tree
+  weight: 20
+
+
+newTree = new Tree()
+
 class App
   constructor: ->
     console.log "hello coffee"
@@ -192,7 +212,7 @@ class App
     yS: 63
     xSize: 128
     ySize: 128
-    maxHeight: 20
+    maxHeight: 30
     minHeight: 20
     constructor: (scene, @afterLoad) ->
       #@addDefault(scene)
@@ -294,24 +314,24 @@ class App
                 {
                   texture: t2
                   levels: [
-                    -80
-                    -35
-                    20
-                    50
+                    -15
+                    -10
+                    -5
+                    0
                   ]
                 }
                 {
                   texture: t3
                   levels: [
-                    20
-                    50
-                    60
-                    85
+                    -20
+                    0
+                    10
+                    15
                   ]
                 }
                 {
                   texture: t4
-                  glsl: '1.0 - smoothstep(65.0 + smoothstep(-256.0, 256.0, vPosition.x) * 10.0, 80.0, vPosition.z)'
+                  glsl: '1.0 - smoothstep(5.0 + smoothstep(-256.0, 256.0, vPosition.x) * 10.0, 28.0, vPosition.z)'
                 }
                 {
                   texture: t3
