@@ -1,4 +1,4 @@
-App = require('clib');
+App = require('app');
 
 document.addEventListener('DOMContentLoaded', function() {
   // do your setup here
