@@ -33,7 +33,8 @@ class App
     # physics_stats.domElement.style.zIndex = 100
     # document.getElementById('viewport').appendChild physics_stats.domElement
     @scene = new (Physijs.Scene)(fixedTimeStep: State.slow_factor / 120)
-    @scene.setGravity new (THREE.Vector3)(0, -80 / State.slow_factor , 0)
+
+    @scene.setGravity new (THREE.Vector3)(0, -80 , 0)
     @scene.addEventListener 'update', =>
       @scene.simulate undefined, 1
       # physics_stats.update()
@@ -87,16 +88,27 @@ class App
     # ground_material.map.repeat.set 2.5, 2.5
     # Ground
     # NoiseGen = new SimplexNoise
+    @cubeCamera = new THREE.CubeCamera(1, 200, 512)
+
     ground = new GenTerrain(@scene, =>
       requestAnimationFrame @render
       @scene.simulate()
 
       @player = new Player()
-      @scene.add @player.shape
-
       @controls = new Controls(@player)
+
+      # texLoader = new THREE.TextureLoader();
+      # texLoader.crossOrigin = '';
+      # texLoader.load('https://dev.ngit.hr/vr/textures/sphere-uv.png', (tex) =>
+        #@player.shape.material.map = tex
+      @player.shape.material.envMap = @cubeCamera.renderTarget.texture
+
+      @scene.add @player.shape
       # @player2 = @createShape();
-      @scene.addEventListener 'update', @controls.moveWithKeys
+      @scene.addEventListener 'update', =>
+        @controls.moveWithKeys()
+        #@cubeCamera.update(@renderer, @scene)
+    # )
     )
     # ground_geometry = new THREE.PlaneGeometry(75, 75, 50, 50)
     # fun!

@@ -1,8 +1,8 @@
 SLOW = false
 
 class State
-  @slow_factor = if not SLOW then 1 else 2
-
+  @slow_factor: if SLOW then 3 else 1
+  @max_height: 0
   #@extend: (obj) => obj.forEach((k,v) => obj[k] = v)
 
 module.exports = State
