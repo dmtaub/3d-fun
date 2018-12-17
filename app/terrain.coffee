@@ -65,24 +65,29 @@ module.exports =
       scene.remove(@terrainScene) if @terrainScene
       scene.remove(ground) if ground
 
-      ground_material = Physijs.createMaterial(new THREE.MeshBasicMaterial(
-        color: 0xffffff
-        transparent: true
-        opacity: 0.02
-        wireframe: true
-      ))
+      groundMaterial = Physijs.createMaterial(new THREE.MeshBasicMaterial(
+	        color: 0xffffff
+	        transparent: true
+	        opacity: 0.02
+	        wireframe: true
+	      ),
+	      State.ground_friction,
+	      State.ground_restitution
+      )
 
-      ground_geometry = @terrainScene.children[0].geometry
-      console.log(ground_geometry)
-      ground_geometry.computeFaceNormals()
-      ground_geometry.computeVertexNormals()
+      groundGeometry = @terrainScene.children[0].geometry
+      console.log(groundGeometry)
+      groundGeometry.computeFaceNormals()
+      groundGeometry.computeVertexNormals()
       ground = new Physijs.HeightfieldMesh(
-        ground_geometry
-        ground_material
+        groundGeometry
+        groundMaterial
         0
         @xS
         @yS
       )
+      #window.g=ground
+      #console.log(ground)
       ground.rotation.x = Math.PI / -2
       # doesn't work w/ basicMaterial
       @terrainScene.children[0].receiveShadow = true

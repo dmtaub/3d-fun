@@ -29,8 +29,8 @@ class Controls
         u3.z -= @rotationalFactor
       else
         # lose rotation inertia in air
-        u3.x = 0
-        u3.z = 0
+        #u3.x = 0
+        #u3.z = 0
     if kd.LEFT.isDown()
       v3.x -= @linearFactor
       v3.z += @linearFactor
@@ -39,8 +39,8 @@ class Controls
         u3.z += @rotationalFactor
       else
         # lose rotation inertia in air
-        u3.x = 0
-        u3.z = 0
+        #u3.x = 0
+        #u3.z = 0
     if kd.UP.isDown()
       v3.x -= @linearFactor
       v3.z -= @linearFactor
@@ -49,8 +49,8 @@ class Controls
         u3.z += @rotationalFactor
       else
         # lose rotation inertia in air
-        u3.x = 0
-        u3.z = 0
+        #u3.x = 0
+        #u3.z = 0
     if kd.DOWN.isDown()
       v3.x += @linearFactor
       v3.z += @linearFactor
@@ -59,8 +59,8 @@ class Controls
         u3.z -= @rotationalFactor
       else
         # lose rotation inertia in air
-        u3.x = 0
-        u3.z = 0
+        #u3.x = 0
+        #u3.z = 0
     if kd.SPACE.isDown() and contactGround
       v3.y = @jumpVelocity
 
