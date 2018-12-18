@@ -24,7 +24,7 @@ module.exports =
 
     scatterMeshes: =>
       # Get the geometry of the terrain across which you want to scatter meshes
-      geo = @landscape.children[0].geometry
+      geo = @visual.children[0].geometry
       # Add randomly distributed foliage
       decoScene = THREE.Terrain.ScatterMeshes(geo,
         mesh: new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 12, 6))
@@ -32,7 +32,7 @@ module.exports =
         h: @yS
         spread: 0.02
         randomness: Math.random)
-      @landscape.add decoScene
+      @visual.add decoScene
 
     addSky: (scene) =>
       SquareTerrain.TextureLoader.load('img/sky1.jpg', (t1) ->
@@ -48,7 +48,7 @@ module.exports =
         scene.add skyDome
       )
     regenerate: (scene) =>
-      @landscape = THREE.Terrain(
+      @visual = THREE.Terrain(
         easing: THREE.Terrain.Linear
         frequency: 2.5
         heightmap: THREE.Terrain.DiamondSquare
@@ -63,8 +63,8 @@ module.exports =
         ySize: @ySize
         #turbulent: true
       )
-      scene.remove(@landscape) if @landscape
-      scene.remove(@ground) if @ground
+      scene.remove(@visual) if @visual
+      scene.remove(@tangible) if @tangible
 
       groundMaterial = Physijs.createMaterial(new THREE.MeshBasicMaterial(
 	        color: 0xffffff
@@ -76,11 +76,11 @@ module.exports =
 	      State.ground_restitution
       )
 
-      groundGeometry = @landscape.children[0].geometry
+      groundGeometry = @visual.children[0].geometry
       console.log(groundGeometry)
       groundGeometry.computeFaceNormals()
       groundGeometry.computeVertexNormals()
-      @ground = new Physijs.HeightfieldMesh(
+      @tangible = new Physijs.HeightfieldMesh(
         groundGeometry
         groundMaterial
         0
@@ -88,13 +88,13 @@ module.exports =
         @yS
       )
 
-      @ground.rotation.x = Math.PI / -2
+      @tangible.rotation.x = Math.PI / -2
       # doesn't work w/ basicMaterial
-      @landscape.children[0].receiveShadow = true
+      @visual.children[0].receiveShadow = true
 
-      scene.add @ground
-      scene.add @landscape
-
+      scene.add @tangible
+      scene.add @visual
+      #hf=s.children[2];g=s.children[3].children[0];hf.geometry.vertices.forEach((x, i) => {x.z=-20; hf._physijs.points[i]=-20}); hf.geometry.verticesNeedUpdate = true; s.add(hf)
 
     addEarth: (scene, cb) =>
       loader = SquareTerrain.TextureLoader
