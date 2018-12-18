@@ -33,15 +33,15 @@ class App
     # physics_stats.domElement.style.zIndex = 100
     # document.getElementById('viewport').appendChild physics_stats.domElement
     @scene = new (Physijs.Scene)(fixedTimeStep: State.slow_factor / 120)
-
+    window.s=@scene
     @scene.setGravity new (THREE.Vector3)(0, -80 , 0)
     @scene.addEventListener 'update', =>
       @scene.simulate undefined, 1
       # physics_stats.update()
       if @playerCamera
-        x = @player.shape.position.x+20
-        y = @player.shape.position.y+20
-        z = @player.shape.position.z+20
+        x = @player.shape.position.x + 20
+        y = @player.shape.position.y + 20
+        z = @player.shape.position.z + 20
         @camera.position.set(x,y,z)
         @camera.lookAt @player.shape.position
       if @player.shape.position.y < -20

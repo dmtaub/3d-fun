@@ -68,7 +68,7 @@ module.exports =
       groundMaterial = Physijs.createMaterial(new THREE.MeshBasicMaterial(
 	        color: 0xffffff
 	        transparent: true
-	        opacity: 0.02
+	        opacity: 0.05
 	        wireframe: true
 	      ),
 	      State.ground_friction,

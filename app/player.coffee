@@ -6,8 +6,8 @@ module.exports =
    constructor: ->
     sphere_geometry = new (THREE.SphereGeometry)(1.5, 12, 6)
     @material = new THREE.MeshPhongMaterial(
-      #opacity: 0
-      #transparent: true
+      opacity: 0
+      transparent: true
       reflectivity  : 0.9,
       combine : THREE.AddOperation,
       flatShading: THREE.FlatShading,
@@ -16,8 +16,9 @@ module.exports =
       emissive  : '#222',
       shininess : 40,
     )
-    @shape = new Physijs.SphereMesh(sphere_geometry, @material, BASE_MASS * State.slow_factor)
-    console.log("MASS: ",BASE_MASS *State.slow_factor)
+    playerMass = BASE_MASS * State.slow_factor
+    @shape = new Physijs.SphereMesh(sphere_geometry, @material, playerMass)
+    console.log("MASS: ", playerMass)
     @material.color.setRGB Math.random() * 100 / 100, Math.random() * 100 / 100, Math.random() * 100 / 100
     @shape.castShadow = true
     #@shape.receiveShadow = true

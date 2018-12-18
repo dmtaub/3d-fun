@@ -10,8 +10,8 @@ class Controls
   jumpVelocity: 22
   linearDamping: 0.5
   angularDamping: 0.8 #/ State.slow_factor
-  linearFactor: 0.6 * State.slow_factor
-  rotationalFactor: 20 * State.slow_factor
+  linearFactor: 0.3 * State.slow_factor
+  rotationalFactor: 10 * State.slow_factor
 
   constructor: (@player) ->
     @player.shape.setDamping @linearDamping, @angularDamping
