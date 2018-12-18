@@ -1,7 +1,7 @@
 # needs to be global for terrain to work
 
 State = require('state')
-GenTerrain = require('terrain')
+Terrain = require('terrain')
 Controls = require('controls')
 Player = require('player')
 
@@ -77,38 +77,27 @@ class App
     light.shadow.bias = -.0001
     light.shadow.mapSize.width = light.shadow.mapSize.height = 2048
     @scene.add light
-    # Loader
-    # loader = new THREE.TextureLoader
-    # Materials
-    #ground_material = Physijs.createMaterial(new THREE.MeshLambertMaterial(color: 0x2194ce, wireframe:true))
 
-    # OLD WAY:
-    # ground_material = Physijs.createMaterial(new (THREE.MeshLambertMaterial)(map: loader.load('images/grass.png')), .8, .4)
-    # ground_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping
-    # ground_material.map.repeat.set 2.5, 2.5
-    # Ground
-    # NoiseGen = new SimplexNoise
-    @cubeCamera = new THREE.CubeCamera(1, 200, 512)
+    if State.fancy_ball
+      @cubeCamera = new THREE.CubeCamera(1, 200, 512)
 
-    ground = new GenTerrain(@scene, =>
+    # todo: await
+    terrain = new Terrain(@scene, =>
       requestAnimationFrame @render
       @scene.simulate()
 
       @player = new Player()
       @controls = new Controls(@player)
 
-      # texLoader = new THREE.TextureLoader();
-      # texLoader.crossOrigin = '';
-      # texLoader.load('https://dev.ngit.hr/vr/textures/sphere-uv.png', (tex) =>
-        #@player.shape.material.map = tex
-      @player.shape.material.envMap = @cubeCamera.renderTarget.texture
+      if State.fancy_ball
+        @player.shape.material.envMap = @cubeCamera.renderTarget.texture
 
       @scene.add @player.shape
-      # @player2 = @createShape();
+
       @scene.addEventListener 'update', =>
         @controls.moveWithKeys()
-        #@cubeCamera.update(@renderer, @scene)
-    # )
+        if State.fancy_ball
+          @cubeCamera.update(@renderer, @scene)
     )
     # ground_geometry = new THREE.PlaneGeometry(75, 75, 50, 50)
     # fun!

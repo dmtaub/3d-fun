@@ -1,8 +1,9 @@
 require('three.terrain.js')
 
+# TODO: async
 State = require('state')
 module.exports =
-  class GenTerrain
+  class SquareTerrain
     # Generate a terrain
     @TextureLoader: new THREE.TextureLoader()
     xS: 63
@@ -23,7 +24,7 @@ module.exports =
 
     scatterMeshes: =>
       # Get the geometry of the terrain across which you want to scatter meshes
-      geo = @terrainScene.children[0].geometry
+      geo = @landscape.children[0].geometry
       # Add randomly distributed foliage
       decoScene = THREE.Terrain.ScatterMeshes(geo,
         mesh: new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 12, 6))
@@ -31,10 +32,10 @@ module.exports =
         h: @yS
         spread: 0.02
         randomness: Math.random)
-      @terrainScene.add decoScene
+      @landscape.add decoScene
 
     addSky: (scene) =>
-      GenTerrain.TextureLoader.load('img/sky1.jpg', (t1) ->
+      SquareTerrain.TextureLoader.load('img/sky1.jpg', (t1) ->
         t1.minFilter = THREE.LinearFilter
         # Texture is not a power-of-two size; use smoother interpolation.
         skyDome = new THREE.Mesh(new THREE.SphereGeometry(8192/12, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.5), new (THREE.MeshBasicMaterial)(
@@ -47,7 +48,7 @@ module.exports =
         scene.add skyDome
       )
     regenerate: (scene) =>
-      @terrainScene = THREE.Terrain(
+      @landscape = THREE.Terrain(
         easing: THREE.Terrain.Linear
         frequency: 2.5
         heightmap: THREE.Terrain.DiamondSquare
@@ -62,8 +63,8 @@ module.exports =
         ySize: @ySize
         #turbulent: true
       )
-      scene.remove(@terrainScene) if @terrainScene
-      scene.remove(ground) if ground
+      scene.remove(@landscape) if @landscape
+      scene.remove(@ground) if @ground
 
       groundMaterial = Physijs.createMaterial(new THREE.MeshBasicMaterial(
 	        color: 0xffffff
@@ -75,29 +76,28 @@ module.exports =
 	      State.ground_restitution
       )
 
-      groundGeometry = @terrainScene.children[0].geometry
+      groundGeometry = @landscape.children[0].geometry
       console.log(groundGeometry)
       groundGeometry.computeFaceNormals()
       groundGeometry.computeVertexNormals()
-      ground = new Physijs.HeightfieldMesh(
+      @ground = new Physijs.HeightfieldMesh(
         groundGeometry
         groundMaterial
         0
         @xS
         @yS
       )
-      #window.g=ground
-      #console.log(ground)
-      ground.rotation.x = Math.PI / -2
-      # doesn't work w/ basicMaterial
-      @terrainScene.children[0].receiveShadow = true
 
-      scene.add(ground)
-      scene.add @terrainScene
+      @ground.rotation.x = Math.PI / -2
+      # doesn't work w/ basicMaterial
+      @landscape.children[0].receiveShadow = true
+
+      scene.add @ground
+      scene.add @landscape
 
 
     addEarth: (scene, cb) =>
-      loader = GenTerrain.TextureLoader
+      loader = SquareTerrain.TextureLoader
       loader.load 'img/sand1.jpg', (t1) =>
         # TODO: use this layer to determine when ball goes off the terrain
         # t1.wrapS = t1.wrapT = THREE.RepeatWrapping
