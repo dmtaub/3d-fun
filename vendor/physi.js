@@ -1119,12 +1119,14 @@ window.Physijs = (function() {
 		var points = [];
 
 		var a, b;
+    this.indexMap = {};
 		for ( var i = 0; i < geometry.vertices.length; i++ ) {
 
 			a = i % this._physijs.xpts;
 			b = Math.round( ( i / this._physijs.xpts ) - ( (i % this._physijs.xpts) / this._physijs.xpts ) );
 			points[i] = geometry.vertices[ a + ( ( this._physijs.ypts - b - 1 ) * this._physijs.ypts ) ].z;
 
+      this.indexMap[a + ( ( this._physijs.ypts - b - 1 ) * this._physijs.ypts )] = i;
 			//points[i] = geometry.vertices[i];
 		}
 
@@ -1132,6 +1134,9 @@ window.Physijs = (function() {
 	};
 	Physijs.HeightfieldMesh.prototype = new Physijs.Mesh;
 	Physijs.HeightfieldMesh.prototype.constructor = Physijs.HeightfieldMesh;
+  Physijs.HeightfieldMesh.prototype.setPointByThreeGeomIndex = function (i, z){
+    this._physijs.points[this.indexMap[i]] = z;
+  }
 
 	// Physijs.BoxMesh
 	Physijs.BoxMesh = function( geometry, material, mass ) {

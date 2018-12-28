@@ -11,7 +11,7 @@ module.exports =
     xSize: 128
     ySize: 128
     maxHeight: State.max_height
-    minHeight: 20
+    minHeight: -20
     snowTop: 20 # higher numbers, more snow
     constructor: (scene, @afterLoad) ->
       #@addDefault(scene)
@@ -23,10 +23,8 @@ module.exports =
       @regenerate(scene)
 
     scatterMeshes: =>
-      # Get the geometry of the terrain across which you want to scatter meshes
-      geo = @visual.children[0].geometry
       # Add randomly distributed foliage
-      decoScene = THREE.Terrain.ScatterMeshes(geo,
+      decoScene = THREE.Terrain.ScatterMeshes(@geo,
         mesh: new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 12, 6))
         w: @xS
         h: @yS
@@ -54,7 +52,7 @@ module.exports =
         heightmap: THREE.Terrain.DiamondSquare
         material: @material or new THREE.MeshLambertMaterial(color: 0x2194ce)
         maxHeight: @maxHeight
-        minHeight: -@minHeight
+        minHeight: @minHeight
         steps: 10
         useBufferGeometry: false
         xSegments: @xS
@@ -63,6 +61,11 @@ module.exports =
         ySize: @ySize
         #turbulent: true
       )
+
+      # Get the geometry of the terrain
+      @geo = @visual.children[0].geometry
+      @geo._v = @geo.vertices.map( (v) -> v.clone())
+
       scene.remove(@visual) if @visual
       scene.remove(@tangible) if @tangible
 
@@ -76,12 +79,10 @@ module.exports =
 	      State.ground_restitution
       )
 
-      groundGeometry = @visual.children[0].geometry
-      console.log(groundGeometry)
-      groundGeometry.computeFaceNormals()
-      groundGeometry.computeVertexNormals()
+      @geo.computeFaceNormals()
+      @geo.computeVertexNormals()
       @tangible = new Physijs.HeightfieldMesh(
-        groundGeometry
+        @geo
         groundMaterial
         0
         @xS
@@ -94,7 +95,19 @@ module.exports =
 
       scene.add @tangible
       scene.add @visual
+      @scene = scene
       #hf=s.children[2];g=s.children[3].children[0];hf.geometry.vertices.forEach((x, i) => {x.z=-20; hf._physijs.points[i]=-20}); hf.geometry.verticesNeedUpdate = true; s.add(hf)
+
+    adjustTile: (divide = 2) =>
+      if not @geo._v
+        return
+
+      for i in [0..@geo.vertices.length-1]# = @geo._v.forEach( (vert, i) =>
+        newZ = @minHeight + (@geo._v[i].z-@minHeight) / divide
+        @geo.vertices[i].z = newZ
+        @tangible.setPointByThreeGeomIndex(i, newZ)
+      @scene.add @tangible # update
+      @geo.verticesNeedUpdate = true
 
     addEarth: (scene, cb) =>
       loader = SquareTerrain.TextureLoader
@@ -117,8 +130,8 @@ module.exports =
                 {
                   texture: t2
                   levels: [
-                    -@minHeight * 3/4
-                    -@minHeight/2
+                    @minHeight * 3/4
+                    @minHeight/2
                     0
                     @maxHeight/2
                   ]

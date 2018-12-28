@@ -1,5 +1,8 @@
-# needs to be global for terrain to work
-
+# references:
+# https://gamedevelopment.tutsplus.com/tutorials/creating-a-simple-3d-physics-game-using-threejs-and-physijs--cms-29453
+# https://github.com/chandlerprall/Physijs/blob/master/physi.js
+# http://learningthreejs.com/blog/2011/08/17/tweenjs-for-smooth-animation/
+#
 State = require('state')
 Terrain = require('terrain')
 Controls = require('controls')
@@ -95,6 +98,8 @@ class App
       @scene.add @player.shape
 
       @scene.addEventListener 'update', =>
+        kd.E.up ->
+          terrain.adjustTile()
         @controls.moveWithKeys()
         if State.fancy_ball
           @cubeCamera.update(@renderer, @scene)
