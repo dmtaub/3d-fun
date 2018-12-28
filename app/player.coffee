@@ -4,7 +4,7 @@ BASE_MASS = 14.1 * 2;
 module.exports =
   class Player
    constructor: ->
-    sphere_geometry = new (THREE.SphereGeometry)(1.5, 12, 6)
+    sphere_geometry = new THREE.SphereGeometry(1.5, State.ball_long_divs, State.ball_lat_divs)
     @material = new THREE.MeshPhongMaterial(
       opacity: 0
       transparent: true
