@@ -1,7 +1,7 @@
 require('three.terrain.js')
 TextureLoader = new THREE.TextureLoader()
-
 State = require('state')
+TWEEN = require('tween.js')
 
 # TODO: async
 
@@ -109,19 +109,24 @@ module.exports =
       @geo._v = @geo.vertices.map( (v) -> v.clone())
 
       # set initial scaling to full
-      if State.terrain_scale == undefined
-        State.terrain_scale = 1
-      State
-      	.tween(terrain_scale: fraction)
-      	.onUpdate @adjustTile
+      if not @terrainScale
+        @terrainScale = 1
+      @tween?.stop()
+      @tween = new TWEEN.Tween(@)
+        .to(terrainScale: fraction, State.transition_time)
+        .onUpdate @adjustTile
+        .easing(TWEEN.Easing.Cubic.InOut)
+        .delay( State.staying_time )
+        .yoyo( true )
+        .repeat(Infinity)
         .start()
 
-    adjustTile: =>
-      console.log("adj")
+    # this is a lot for an onUpdate, but maybe it will be ok..
+    adjustTile: (t) =>
       if not @geo._vBase
         return
       for i in [0..@geo.vertices.length-1]# = @geo._v.forEach( (vert, i) =>
-        newZ = @minHeight + (@geo._v[i].z-@minHeight) * State.terrain_scale
+        newZ = @minHeight + (@geo._vBase[i].z-@minHeight) * @terrainScale
         @geo.vertices[i].z = newZ
         @tangible.setPointByThreeGeomIndex(i, newZ)
       @scene.add @tangible # update by re-adding?

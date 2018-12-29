@@ -1,5 +1,6 @@
 State = require('state')
 BASE_MASS = 14.1 * 2;
+TWEEN = require('tween.js')
 
 module.exports =
   class Player

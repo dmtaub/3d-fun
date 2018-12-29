@@ -12,8 +12,7 @@ class State
   @ball_long_divs = 12 #30
   #@extend: (obj) => obj.forEach((k,v) => obj[k] = v)
 
-  @tween: (destObj, time = 1500) ->
-  	return new TWEEN.Tween(State).to(destObj, time)
 
-
+  @transition_time = 1500
+  @staying_time = 500
 module.exports = State

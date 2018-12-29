@@ -8,6 +8,7 @@ Terrain = require('terrain')
 Controls = require('controls')
 Player = require('player')
 Stats = require('three/examples/js/libs/stats.min')
+TWEEN = require('tween.js')
 
 class App
   constructor: ->
@@ -19,7 +20,6 @@ class App
       ), false )
 
   initScene: =>
-    TWEEN.start()
     @renderer = new (THREE.WebGLRenderer)(antialias: true)
     @renderer.setSize window.innerWidth, window.innerHeight
     @renderer.shadowMap.enabled = true
@@ -46,6 +46,7 @@ class App
     window.s=@scene
     @scene.setGravity new (THREE.Vector3)(0, -80 , 0)
     @scene.addEventListener 'update', =>
+      TWEEN.update()
       @scene.simulate undefined, 1
       if State.enable_stats
         @physicsStats.update()
