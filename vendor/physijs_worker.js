@@ -205,7 +205,6 @@ createShape = function( description ) {
 		case 'heightfield':
 
 			var ptr = Ammo.allocate(4 * description.xpts * description.ypts, "float", Ammo.ALLOC_NORMAL);
-
 			for (var f = 0; f < description.points.length; f++) {
 				Ammo.setValue(ptr + f,  description.points[f]  , 'float');
 			}
@@ -221,6 +220,8 @@ createShape = function( description ) {
 					0,
 					false
 				);
+      // for later access
+      shape.dataPtr = ptr;
 
 			_vec3_1.setX(description.xsize/(description.xpts - 1));
 			_vec3_1.setY(description.ysize/(description.ypts - 1));
@@ -323,6 +324,22 @@ public_functions.setGravity = function( description ) {
 	_vec3_1.setZ(description.z);
 	world.setGravity(_vec3_1);
 };
+
+// for updating heightfield only right now
+public_functions.updatePoints = function( description ) {
+  // var ptr = Ammo.allocate(4 * description.xpts * description.ypts, "float", Ammo.ALLOC_NORMAL);
+  shape = _noncached_shapes[description.id];
+  ptr = shape.dataPtr;
+  for (var f = 0; f < description.points.length; f++) {
+    Ammo.setValue(ptr + f,  description.points[f]  , 'float');
+  }
+  // _vec3_1.setX(description.xsize/(description.xpts - 1));
+  // _vec3_1.setY(description.ysize/(description.ypts - 1));
+  // _vec3_1.setZ(1);
+
+  // shape.setLocalScaling(_vec3_1);
+  // _noncached_shapes[description.id] = shape;
+}
 
 public_functions.addObject = function( description ) {
 

@@ -99,6 +99,7 @@ module.exports =
 
       scene.add @tangible
       scene.add @visual
+      # this.scene is the active scene
       @scene = scene
       #hf=s.children[2];g=s.children[3].children[0];hf.geometry.vertices.forEach((x, i) => {x.z=-20; hf._physijs.points[i]=-20}); hf.geometry.verticesNeedUpdate = true; s.add(hf)
 
@@ -113,12 +114,15 @@ module.exports =
         @terrainScale = 1
       @tween?.stop()
       @tween = new TWEEN.Tween(@)
-        .to(terrainScale: fraction, State.transition_time)
-        .onUpdate @adjustTile
-        .easing(TWEEN.Easing.Cubic.InOut)
+        .to(
+          terrainScale: fraction
+          State.transition_time
+        )
+        .onUpdate( @adjustTile )
+        .easing( TWEEN.Easing.Cubic.InOut )
         .delay( State.staying_time )
         .yoyo( true )
-        .repeat(Infinity)
+        .repeat( Infinity )
         .start()
 
     # this is a lot for an onUpdate, but maybe it will be ok..
@@ -129,7 +133,8 @@ module.exports =
         newZ = @minHeight + (@geo._vBase[i].z-@minHeight) * @terrainScale
         @geo.vertices[i].z = newZ
         @tangible.setPointByThreeGeomIndex(i, newZ)
-      @scene.add @tangible # update by re-adding?
+
+      @tangible.flagUpdate() # update by re-adding, mem leak??
       @geo.verticesNeedUpdate = true
 
     addEarth: (scene, cb) =>

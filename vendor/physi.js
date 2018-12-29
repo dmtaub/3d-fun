@@ -1137,7 +1137,9 @@ window.Physijs = (function() {
   Physijs.HeightfieldMesh.prototype.setPointByThreeGeomIndex = function (i, z){
     this._physijs.points[this.indexMap[i]] = z;
   }
-
+  Physijs.HeightfieldMesh.prototype.flagUpdate = function (){
+    this.world.execute( 'updatePoints', this._physijs);
+  }
 	// Physijs.BoxMesh
 	Physijs.BoxMesh = function( geometry, material, mass ) {
 		var width, height, depth;

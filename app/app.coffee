@@ -43,8 +43,9 @@ class App
       document.getElementById('viewport').appendChild @physicsStats.domElement
 
     @scene = new (Physijs.Scene)(fixedTimeStep: State.slow_factor / 120)
-    window.s=@scene
+
     @scene.setGravity new (THREE.Vector3)(0, -80 , 0)
+    # runs when worldUpdate message comes from worker
     @scene.addEventListener 'update', =>
       TWEEN.update()
       @scene.simulate undefined, 1
