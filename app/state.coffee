@@ -1,6 +1,8 @@
 SLOW = false
+STATS = true
 
 class State
+  @enable_stats: STATS
   @slow_factor: if SLOW then 3 else 1
   @max_height: 0
   @ground_friction: 18
@@ -9,5 +11,9 @@ class State
   @ball_lat_divs = 6 #30
   @ball_long_divs = 12 #30
   #@extend: (obj) => obj.forEach((k,v) => obj[k] = v)
+
+  @tween: (destObj, time = 1500) ->
+  	return new TWEEN.Tween(State).to(destObj, time)
+
 
 module.exports = State

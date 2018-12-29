@@ -1,11 +1,13 @@
 require('three.terrain.js')
+TextureLoader = new THREE.TextureLoader()
+
+State = require('state')
 
 # TODO: async
-State = require('state')
+
 module.exports =
   class SquareTerrain
     # Generate a terrain
-    @TextureLoader: new THREE.TextureLoader()
     xS: 63
     yS: 63
     xSize: 128
@@ -33,7 +35,7 @@ module.exports =
       @visual.add decoScene
 
     addSky: (scene) =>
-      SquareTerrain.TextureLoader.load('img/sky1.jpg', (t1) ->
+      TextureLoader.load('img/sky1.jpg', (t1) ->
         t1.minFilter = THREE.LinearFilter
         # Texture is not a power-of-two size; use smoother interpolation.
         skyDome = new THREE.Mesh(new THREE.SphereGeometry(8192/12, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.5), new (THREE.MeshBasicMaterial)(
@@ -62,21 +64,23 @@ module.exports =
         #turbulent: true
       )
 
-      # Get the geometry of the terrain
+      # Get reference to geometry of the terrain
       @geo = @visual.children[0].geometry
-      @geo._v = @geo.vertices.map( (v) -> v.clone())
+      # clone it for transformations
+      @geo._vBase = @geo.vertices.map( (v) -> v.clone())
+
 
       scene.remove(@visual) if @visual
       scene.remove(@tangible) if @tangible
 
       groundMaterial = Physijs.createMaterial(new THREE.MeshBasicMaterial(
-	        color: 0xffffff
-	        transparent: true
-	        opacity: 0.05
-	        wireframe: true
-	      ),
-	      State.ground_friction,
-	      State.ground_restitution
+          color: 0xffffff
+          transparent: true
+          opacity: 0.05
+          wireframe: true
+        ),
+        State.ground_friction,
+        State.ground_restitution
       )
 
       @geo.computeFaceNormals()
@@ -98,19 +102,33 @@ module.exports =
       @scene = scene
       #hf=s.children[2];g=s.children[3].children[0];hf.geometry.vertices.forEach((x, i) => {x.z=-20; hf._physijs.points[i]=-20}); hf.geometry.verticesNeedUpdate = true; s.add(hf)
 
-    adjustTile: (divide = 2) =>
-      if not @geo._v
-        return
+    setTarget: (fraction = 0.5) =>
+      if not @geo._vBase
+        throw "Need to have a base heightfield"
 
+      @geo._v = @geo.vertices.map( (v) -> v.clone())
+
+      # set initial scaling to full
+      if State.terrain_scale == undefined
+        State.terrain_scale = 1
+      State
+      	.tween(terrain_scale: fraction)
+      	.onUpdate @adjustTile
+        .start()
+
+    adjustTile: =>
+      console.log("adj")
+      if not @geo._vBase
+        return
       for i in [0..@geo.vertices.length-1]# = @geo._v.forEach( (vert, i) =>
-        newZ = @minHeight + (@geo._v[i].z-@minHeight) / divide
+        newZ = @minHeight + (@geo._v[i].z-@minHeight) * State.terrain_scale
         @geo.vertices[i].z = newZ
         @tangible.setPointByThreeGeomIndex(i, newZ)
-      @scene.add @tangible # update
+      @scene.add @tangible # update by re-adding?
       @geo.verticesNeedUpdate = true
 
     addEarth: (scene, cb) =>
-      loader = SquareTerrain.TextureLoader
+      loader = TextureLoader
       loader.load 'img/sand1.jpg', (t1) =>
         # TODO: use this layer to determine when ball goes off the terrain
         # t1.wrapS = t1.wrapT = THREE.RepeatWrapping
@@ -141,7 +159,7 @@ module.exports =
                   levels: [
                     @maxHeight/2
                     @maxHeight * 3/4
-                   	@maxHeight * 3/4
+                    @maxHeight * 3/4
                     @maxHeight
                   ]
                 }

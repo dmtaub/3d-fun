@@ -7,6 +7,7 @@ State = require('state')
 Terrain = require('terrain')
 Controls = require('controls')
 Player = require('player')
+Stats = require('three/examples/js/libs/stats.min')
 
 class App
   constructor: ->
@@ -25,22 +26,29 @@ class App
     #renderer.shadowMap.type = THREE.PCFSoftShadowMap
     @renderer.shadowMapSoft = true
     document.getElementById('viewport').appendChild @renderer.domElement
-    # render_stats = new Stats
-    # render_stats.domElement.style.position = 'absolute'
-    # render_stats.domElement.style.top = '0px'
-    # render_stats.domElement.style.zIndex = 100
-    # document.getElementById('viewport').appendChild render_stats.domElement
-    # physics_stats = new Stats
-    # physics_stats.domElement.style.position = 'absolute'
-    # physics_stats.domElement.style.top = '50px'
-    # physics_stats.domElement.style.zIndex = 100
-    # document.getElementById('viewport').appendChild physics_stats.domElement
+    if State.enable_stats
+      # add frame rate (top)
+      @renderStats = new Stats
+      @renderStats.domElement.style.position = 'absolute'
+      @renderStats.domElement.style.top = '0px'
+      @renderStats.domElement.style.zIndex = 100
+      @renderStats.domElement.title = 'for rendering'
+      document.getElementById('viewport').appendChild @renderStats.domElement
+      # add simulation rate (bot)
+      @physicsStats = new Stats
+      @physicsStats.domElement.style.position = 'absolute'
+      @physicsStats.domElement.style.top = '50px'
+      @physicsStats.domElement.style.zIndex = 100
+      @physicsStats.domElement.title = 'for physics'
+      document.getElementById('viewport').appendChild @physicsStats.domElement
+
     @scene = new (Physijs.Scene)(fixedTimeStep: State.slow_factor / 120)
     window.s=@scene
     @scene.setGravity new (THREE.Vector3)(0, -80 , 0)
     @scene.addEventListener 'update', =>
       @scene.simulate undefined, 1
-      # physics_stats.update()
+      if State.enable_stats
+        @physicsStats.update()
       if @playerCamera
         x = @player.shape.position.x + 20
         y = @player.shape.position.y + 20
@@ -99,7 +107,8 @@ class App
 
       @scene.addEventListener 'update', =>
         kd.E.up ->
-          terrain.adjustTile()
+          terrain.setTarget(Math.random())
+
         @controls.moveWithKeys()
         if State.fancy_ball
           @cubeCamera.update(@renderer, @scene)
@@ -125,7 +134,8 @@ class App
   render: =>
     requestAnimationFrame @render
     @renderer.render @scene, @camera
-    # render_stats.update()
+    if State.enable_stats
+      @renderStats.update()
     return
 
 module.exports = App
