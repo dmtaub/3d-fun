@@ -12,6 +12,7 @@ TWEEN = require('tween.js')
 
 class App
   constructor: ->
+    @config = State
     @initScene()
     window.addEventListener( 'resize', (() =>
         @camera.aspect = window.innerWidth / window.innerHeight
@@ -106,11 +107,8 @@ class App
         @player.shape.material.envMap = @cubeCamera.renderTarget.texture
 
       @scene.add @player.shape
-
+      @controls.setupActions(terrain)
       @scene.addEventListener 'update', =>
-        kd.E.up ->
-          terrain.setTarget(Math.random())
-
         @controls.moveWithKeys()
         if State.fancy_ball
           @cubeCamera.update(@renderer, @scene)

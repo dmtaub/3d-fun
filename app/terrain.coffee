@@ -67,7 +67,7 @@ module.exports =
       # Get reference to geometry of the terrain
       @geo = @visual.children[0].geometry
       # clone it for transformations
-      @geo._vBase = @geo.vertices.map( (v) -> v.clone())
+      @geo.zBase = @geo.vertices.map( (v) -> v.clone())
 
 
       scene.remove(@visual) if @visual
@@ -104,37 +104,42 @@ module.exports =
       #hf=s.children[2];g=s.children[3].children[0];hf.geometry.vertices.forEach((x, i) => {x.z=-20; hf._physijs.points[i]=-20}); hf.geometry.verticesNeedUpdate = true; s.add(hf)
 
     setTarget: (fraction = 0.5) =>
-      if not @geo._vBase
+      if not @geo.zBase
         throw "Need to have a base heightfield"
 
-      @geo._v = @geo.vertices.map( (v) -> v.clone())
+      @geo.z = @geo.vertices.map( (v) -> v.clone())
 
       # set initial scaling to full
-      if not @terrainScale
+      if @terrainScale == undefined
         @terrainScale = 1
-      @tween?.stop()
+
+      if @tween
+        @lastScale = @terrainScale
+        @tween.stop()
+      else
+        @lastScale = fraction
+      console.log(TWEEN)
       @tween = new TWEEN.Tween(@)
         .to(
           terrainScale: fraction
           State.transition_time
         )
         .onUpdate( @adjustTile )
-        .easing( TWEEN.Easing.Cubic.InOut )
+        .easing( TWEEN.Easing.Sinusoidal.InOut )
         .delay( State.staying_time )
-        .yoyo( true )
-        .repeat( Infinity )
+        #.yoyo( true )
+        #.repeat( Infinity )
         .start()
 
     # this is a lot for an onUpdate, but maybe it will be ok..
     adjustTile: (t) =>
-      if not @geo._vBase
+      if not @geo.zBase
         return
-      for i in [0..@geo.vertices.length-1]# = @geo._v.forEach( (vert, i) =>
-        newZ = @minHeight + (@geo._vBase[i].z-@minHeight) * @terrainScale
+      for i in [0..@geo.vertices.length-1]# = @geo.z.forEach( (vert, i) =>
+        newZ = @minHeight + (@geo.zBase[i].z-@minHeight) * @terrainScale
         @geo.vertices[i].z = newZ
         @tangible.setPointByThreeGeomIndex(i, newZ)
-
-      @tangible.flagUpdate() # update by re-adding, mem leak??
+      @tangible.flagUpdate() # update by re-adding to scene caused a memory leak
       @geo.verticesNeedUpdate = true
 
     addEarth: (scene, cb) =>

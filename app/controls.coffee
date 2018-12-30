@@ -1,10 +1,6 @@
-
-maxVector = new THREE.Vector3(20, 5000, 20)
-minVector = maxVector.clone().multiplyScalar(-1)
-
 State = require('state')
 
-module.exports = (player) -> new Controls(player)
+module.exports = (player) => new Controls(player)
 
 class Controls
   jumpVelocity: 22
@@ -16,12 +12,48 @@ class Controls
   constructor: (@player) ->
     @player.shape.setDamping @linearDamping, @angularDamping
 
+
+  jump: (scale = 2) =>
+    v = @player.shape.getLinearVelocity()
+    v.y = @jumpVelocity*scale
+    @player.shape.setLinearVelocity v
+
+  setupActions: (@terrain) =>
+    doAfterDelay = =>
+      @jump()
+    delay = State.transition_time / 2
+
+    kd.W.up =>
+      @terrain.setTarget(2) #hehehe "forward"
+      if @terrain.lastScale < 1
+        @jump()
+        setTimeout( doAfterDelay, delay )
+    kd.A.up =>
+      @terrain.setTarget(@terrain.lastScale)
+      # little hop
+      if @terrain.lastScale > 1
+        @jump()
+        setTimeout( doAfterDelay, delay )
+
+    kd.S.up =>
+      @terrain.setTarget(0)
+    kd.D.up =>
+      @terrain.setTarget(1)
+
+    # legacy for Onyi and Steven
+    kd.E.up =>
+      @terrain.setTarget(Math.random())
+
+
+
   moveWithKeys: =>
+    if State.disable_arrows
+      return
     # // arrow keys
     v3 = @player.shape.getLinearVelocity()
     u3 = @player.shape.getAngularVelocity()
     contactGround = @player.shape._physijs.touches.length > 0
-    if kd.RIGHT.isDown() or kd.D.isDown()
+    if kd.RIGHT.isDown()
       v3.x += @linearFactor
       v3.z -= @linearFactor
       if contactGround
@@ -64,8 +96,8 @@ class Controls
     if kd.SPACE.isDown() and contactGround
       v3.y = @jumpVelocity
 
-    u3.clamp minVector, maxVector
-    v3.clamp minVector, maxVector
+    u3.clamp State.min_vector, State.max_vector
+    v3.clamp State.min_vector, State.max_vector
     @player.shape.setAngularVelocity u3
     @player.shape.setLinearVelocity v3
     return
