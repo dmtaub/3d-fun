@@ -10,8 +10,8 @@ module.exports =
     # Generate a terrain
     xS: 63
     yS: 63
-    xSize: 128
-    ySize: 128
+    xSize: State.map_size
+    ySize: State.map_size
     maxHeight: State.max_height
     minHeight: State.min_height
     snowTop: 20 # higher numbers, more snow

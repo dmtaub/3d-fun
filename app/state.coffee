@@ -12,6 +12,7 @@ class State
   @ball_lat_divs = 6 #30
   @ball_long_divs = 12 #30
   #@extend: (obj) => obj.forEach((k,v) => obj[k] = v)
+  @map_size: 128
 
 
   @transition_time = 1500
