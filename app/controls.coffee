@@ -44,6 +44,11 @@ class Controls
   updateCameraPosition: =>
     if not @mouseControls
       throw new Error("Need to initialize mouseControls")
+    distance = @camera.position.distanceTo(@player.shape.position)
+
+    if distance > State.player_camera_max_distance or
+       distance < State.player_camera_min_distance
+      @enablePlayerCamera() # reset position
     @mouseControls.target = @player.shape.position
     @mouseControls.update()
   ## end camera module
