@@ -57,7 +57,7 @@ class App
         z = @player.shape.position.z + 20
         @camera.position.set(x,y,z)
         @camera.lookAt @player.shape.position
-      if @player.shape.position.y < -20
+      if @player.shape.position.y < State.min_height
         @scene.remove @player.shape
         @player.resetPosition()
         @scene.add @player.shape

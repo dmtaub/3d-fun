@@ -13,7 +13,7 @@ module.exports =
     xSize: 128
     ySize: 128
     maxHeight: State.max_height
-    minHeight: -20
+    minHeight: State.min_height
     snowTop: 20 # higher numbers, more snow
     constructor: (scene, @afterLoad) ->
       #@addDefault(scene)
