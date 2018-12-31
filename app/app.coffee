@@ -51,12 +51,15 @@ class App
       @scene.simulate undefined, 1
       if State.enable_stats
         @physicsStats.update()
+      # if @playerCamera
+      #   x = @player.shape.position.x + 20
+      #   y = @player.shape.position.y + 20
+      #   z = @player.shape.position.z + 20
+      #   @camera.position.set(x,y,z)
+      #if @playerCamera
+      #  @camera.lookAt @player.shape.position
       if @playerCamera
-        x = @player.shape.position.x + 20
-        y = @player.shape.position.y + 20
-        z = @player.shape.position.z + 20
-        @camera.position.set(x,y,z)
-        @camera.lookAt @player.shape.position
+        @controls.updateCameraPosition()
       if @player.shape.position.y < State.min_height
         @scene.remove @player.shape
         @player.resetPosition()
@@ -68,14 +71,15 @@ class App
     @camera.lookAt @scene.position
     @scene.add @camera
     @playerCamera = false
+
     kd.ESC.up ()=>
       if @playerCamera
         @playerCamera = false
-        @camera.position.set 60*x, 50*x, 60*x
-        @camera.lookAt @scene.position
+        @controls.disablePlayerCamera()
+        #@camera.position.set 60*x, 50*x, 60*x
       else
         @playerCamera = true
-
+        @controls.enablePlayerCamera()
     # Light
     light = new THREE.DirectionalLight(0xFFFFFF)
     light.position.set 20, 40, -15
@@ -101,6 +105,7 @@ class App
 
       @player = new Player()
       @controls = new Controls(@player)
+      @controls.setCameraAndScene(@camera, @scene, @renderer)
 
       if State.fancy_ball
         @player.shape.material.envMap = @cubeCamera.renderTarget.texture

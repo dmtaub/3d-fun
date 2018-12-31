@@ -6,6 +6,10 @@ State = require('state')
 
 module.exports = (player) -> new Controls(player)
 
+#require('three/examples/js/controls/PointerLockControls')
+require('three/examples/js/controls/OrbitControls')
+
+
 class Controls
   jumpVelocity: 22
   linearDamping: 0.5
@@ -15,6 +19,34 @@ class Controls
 
   constructor: (@player) ->
     @player.shape.setDamping @linearDamping, @angularDamping
+
+  ## this should be in camera module
+  setCameraAndScene: (@camera, @scene, @renderer) =>
+    if @mouseControls
+      console.error("already initialized")
+      return
+    @mouseControls = new THREE.OrbitControls(@camera, @renderer.domElement)
+    @mouseControls.enableKeys = false
+    @mouseControls.enablePan = false
+    @mouseControls.saveState() # for restore
+
+  enablePlayerCamera: =>
+    x = @player.shape.position.x + 20
+    y = @player.shape.position.y + 20
+    z = @player.shape.position.z + 20
+    @camera.position.set(x,y,z)
+
+  disablePlayerCamera: =>
+    @mouseControls.target = @scene.position
+    @camera.lookAt @scene.position
+    @mouseControls.reset()
+
+  updateCameraPosition: =>
+    if not @mouseControls
+      throw new Error("Need to initialize mouseControls")
+    @mouseControls.target = @player.shape.position
+    @mouseControls.update()
+  ## end camera module
 
   moveWithKeys: =>
     # // arrow keys
