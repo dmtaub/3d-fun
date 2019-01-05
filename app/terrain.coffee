@@ -136,6 +136,7 @@ module.exports =
 
       @tangible.flagUpdate() # update by re-adding, mem leak??
       @geo.verticesNeedUpdate = true
+      @geo.computeVertexNormals()
 
     addEarth: (scene, cb) =>
       loader = TextureLoader

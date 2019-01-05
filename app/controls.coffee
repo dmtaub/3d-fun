@@ -106,7 +106,7 @@ class Controls
     vector = new THREE.Vector3()
     @camera.getWorldDirection(vector)
     theta = Math.atan2(vector.x,vector.z)
-    console.log(theta)
+    #console.log(theta)
     #q = new THREE.Quaternion()
     #@camera.getWorldQuaternion(q)
     #rot = @player.shape.position.clone().applyQuaternion(q)
