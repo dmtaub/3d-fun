@@ -14,7 +14,7 @@ class Controls
   jumpVelocity: 22
   linearDamping: 0.5
   angularDamping: 0.8 #/ State.slow_factor
-  linearFactor: 30 * State.slow_factor
+  linearFactor: 0.3 * State.slow_factor
   rotationalFactor: 10 * State.slow_factor
 
   constructor: (@player) ->
@@ -62,8 +62,7 @@ class Controls
     if kd.RIGHT.isDown() or kd.D.isDown()
       v3.x -= @linearFactor
       if contactGround
-        u3.x -= @rotationalFactor
-        u3.z -= @rotationalFactor
+        u3.z += @rotationalFactor
       else
         # lose rotation inertia in air
         #u3.x = 0
@@ -71,8 +70,7 @@ class Controls
     if kd.LEFT.isDown()
       v3.x += @linearFactor
       if contactGround
-        u3.x += @rotationalFactor
-        u3.z += @rotationalFactor
+        u3.z -= @rotationalFactor
       else
         # lose rotation inertia in air
         #u3.x = 0
@@ -80,8 +78,7 @@ class Controls
     if kd.UP.isDown()
       v3.z += @linearFactor
       if contactGround
-        u3.x -= @rotationalFactor
-        u3.z += @rotationalFactor
+        u3.x += @rotationalFactor
       else
         # lose rotation inertia in air
         #u3.x = 0
@@ -89,8 +86,7 @@ class Controls
     if kd.DOWN.isDown()
       v3.z -= @linearFactor
       if contactGround
-        u3.x += @rotationalFactor
-        u3.z -= @rotationalFactor
+        u3.x -= @rotationalFactor
       else
         # lose rotation inertia in air
         #u3.x = 0
@@ -111,11 +107,12 @@ class Controls
     #@camera.getWorldQuaternion(q)
     #rot = @player.shape.position.clone().applyQuaternion(q)
     v3.applyAxisAngle(axis,theta)
+    u3.applyAxisAngle(axis,theta)
     #@player.shape.worldToLocal(v3)
     #linV.rotate
     #console.log(rot)
     linV.add(v3)
-    #angV.add(u3)
+    angV.add(u3)
 
     linV.clamp minVector, maxVector
     angV.clamp minVector, maxVector
