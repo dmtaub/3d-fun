@@ -48,6 +48,9 @@ module.exports =
         scene.add skyDome
       )
     regenerate: (scene) =>
+      scene.remove(@visual) if @visual
+      scene.remove(@tangible) if @tangible
+
       @visual = THREE.Terrain(
         easing: THREE.Terrain.Linear
         frequency: 2.5
@@ -68,10 +71,6 @@ module.exports =
       @geo = @visual.children[0].geometry
       # clone it for transformations
       @geo._vBase = @geo.vertices.map( (v) -> v.clone())
-
-
-      scene.remove(@visual) if @visual
-      scene.remove(@tangible) if @tangible
 
       groundMaterial = Physijs.createMaterial(new THREE.MeshBasicMaterial(
           color: 0xffffff

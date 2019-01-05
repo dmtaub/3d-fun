@@ -99,7 +99,7 @@ class App
       @cubeCamera = new THREE.CubeCamera(1, 200, 512)
 
     # todo: await
-    terrain = new Terrain(@scene, =>
+    @terrain = new Terrain(@scene, =>
       requestAnimationFrame @render
       @scene.simulate()
 
@@ -114,7 +114,7 @@ class App
 
       @scene.addEventListener 'update', =>
         kd.E.up ->
-          terrain.setTarget(Math.random())
+          @terrain.setTarget(Math.random())
 
         @controls.moveWithKeys()
         if State.fancy_ball
