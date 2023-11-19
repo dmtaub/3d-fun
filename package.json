@@ -1,23 +1,10 @@
 {
-  "name": "brunch-app",
-  "description": "Brunch.io application",
-  "private": true,
-  "author": "Brunch",
-  "version": "0.0.1",
-  "repository": "",
-  "scripts": {
-    "start": "brunch watch --server",
-    "build": "brunch build --production"
-  },
-  "dependencies": {},
-  "devDependencies": {
-    "auto-reload-brunch": "^2",
-    "brunch": "^2.10.17",
-    "clean-css-brunch": "^2",
-    "coffee-script-brunch": "^2.10.2",
-    "three": "^0.98.0",
-    "three.terrain.js": "^1.6.0",
-    "tween.js": "^16.6.0",
-    "uglify-js-brunch": "^2"
-  }
+  "name": "3d-fun",
+  "version": "0.1.0",
+  "description": "Ball game refactor into civet code for the new type-heavy world",
+  "main": "app.js",
+  "repository": "https://github.com/dmtaub/3d-fun.git",
+  "author": "DMTaub",
+  "license": "MIT",
+  "private": false
 }
