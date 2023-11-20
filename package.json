@@ -9,11 +9,12 @@
   "private": false,
   "devDependencies": {
     "@danielx/civet": "^0.6.50",
-    "vite-plugin-civet": "^0.1.0",
     "@rollup/pluginutils": "^5.0.5",
+    "@types/three": "^0.158.2",
+    "three": "^0.158.0",
     "typescript": "^5.2.2",
-    "vite": "^5"
-    
+    "vite": "^5",
+    "vite-plugin-civet": "^0.1.0"
   },
   "scripts": {
     "start": "vite",
