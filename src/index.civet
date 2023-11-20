@@ -1,6 +1,7 @@
-import * as THREE from 'three';
-// testThree()
+* as THREE from three
+App from ./app.civet;
 
+testThree()
 function testThree()
     // Create a scene
     let scene = new THREE.Scene();

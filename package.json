@@ -12,6 +12,8 @@
     "@rollup/pluginutils": "^5.0.5",
     "@types/three": "^0.158.2",
     "three": "^0.158.0",
+    "three.terrain.js": "2.0.0",
+    "@tweenjs/tween.js": "^21.0.0",
     "typescript": "^5.2.2",
     "vite": "^5",
     "vite-plugin-civet": "^0.1.0"
