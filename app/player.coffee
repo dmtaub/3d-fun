@@ -1,5 +1,5 @@
 State = require('state')
-BASE_MASS = 14.1 * 2;
+BASE_MASS = 14.1 * 8;
 TWEEN = require('tween.js')
 
 module.exports =
