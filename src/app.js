@@ -3,10 +3,10 @@ import { State } from './state';
 import { Terrain } from './terrain';
 import { Controls } from './controls';
 import { Player } from './player';
-import { Stats } from 'three/examples/jsm/libs/stats.module';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 import TWEEN from '@tweenjs/tween.js';
 
-export class App {
+export default class App {
   constructor() {
     this.config = State;
     this.initScene();
