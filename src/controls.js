@@ -58,35 +58,29 @@ export class Controls {
   }
 
   moveWithKeys() {
-    if (State.disable_arrows) return;
+    if (State.disable_arrows || !this.player.rigidBody) return;
 
-    // Note: We'll need to implement physics-based movement
-    // For now, we'll just move the ball directly
-    const moveSpeed = this.linearFactor;
-    const rotateSpeed = this.rotationalFactor;
+    const force = this.linearFactor;
+    const torque = this.rotationalFactor;
 
     if (this.keys['ArrowRight']) {
-      this.player.shape.position.x += moveSpeed;
-      this.player.shape.rotation.x -= rotateSpeed;
-      this.player.shape.rotation.z -= rotateSpeed;
+      this.player.rigidBody.applyImpulse({ x: force, y: 0, z: 0 }, true);
+      this.player.rigidBody.applyTorqueImpulse({ x: -torque, y: 0, z: -torque }, true);
     }
     if (this.keys['ArrowLeft']) {
-      this.player.shape.position.x -= moveSpeed;
-      this.player.shape.rotation.x += rotateSpeed;
-      this.player.shape.rotation.z += rotateSpeed;
+      this.player.rigidBody.applyImpulse({ x: -force, y: 0, z: 0 }, true);
+      this.player.rigidBody.applyTorqueImpulse({ x: torque, y: 0, z: torque }, true);
     }
     if (this.keys['ArrowUp']) {
-      this.player.shape.position.z -= moveSpeed;
-      this.player.shape.rotation.x -= rotateSpeed;
-      this.player.shape.rotation.z += rotateSpeed;
+      this.player.rigidBody.applyImpulse({ x: 0, y: 0, z: -force }, true);
+      this.player.rigidBody.applyTorqueImpulse({ x: -torque, y: 0, z: -torque }, true);
     }
     if (this.keys['ArrowDown']) {
-      this.player.shape.position.z += moveSpeed;
-      this.player.shape.rotation.x += rotateSpeed;
-      this.player.shape.rotation.z -= rotateSpeed;
+      this.player.rigidBody.applyImpulse({ x: 0, y: 0, z: force }, true);
+      this.player.rigidBody.applyTorqueImpulse({ x: torque, y: 0, z: torque }, true);
     }
     if (this.keys[' ']) {
-      this.jump();
+      this.player.rigidBody.applyImpulse({ x: 0, y: this.jumpVelocity, z: 0 }, true);
     }
   }
 } 

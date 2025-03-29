@@ -5,16 +5,26 @@ import { Controls } from './controls';
 import { Player } from './player';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import TWEEN from '@tweenjs/tween.js';
+import * as RAPIER from '@dimforge/rapier3d-compat';
 
 export default class App {
   constructor() {
     this.config = State;
-    this.initScene();
+    this.initPhysics().then(() => {
+      this.initScene();
+    });
     window.addEventListener('resize', () => {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     }, false);
+  }
+
+  async initPhysics() {
+    // Initialize Rapier physics
+    await RAPIER.init();
+    const gravity = { x: 0.0, y: -9.81, z: 0.0 };
+    this.world = new RAPIER.World(gravity);
   }
 
   initScene() {
@@ -77,7 +87,7 @@ export default class App {
     this.terrain = new Terrain(this.scene, () => {
       requestAnimationFrame(() => this.render());
       
-      this.player = new Player();
+      this.player = new Player(this.world);
       this.controls = new Controls(this.player);
 
       if (State.fancy_ball) {
@@ -91,6 +101,15 @@ export default class App {
 
   render() {
     requestAnimationFrame(() => this.render());
+    
+    // Step the physics world
+    this.world.step();
+    
+    // Update player physics
+    if (this.player) {
+      this.player.update();
+    }
+    
     this.renderer.render(this.scene, this.camera);
     
     if (State.enable_stats) {
