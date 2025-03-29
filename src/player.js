@@ -3,8 +3,8 @@ import { State } from './state';
 import * as TWEEN from '@tweenjs/tween.js';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 
-const BASE_MASS = 14.1 * 8;
-
+const BASE_MASS = 14.1 * 2;
+const FADE_IN_TIME = 150;
 export class Player {
   constructor(world) {
     const sphereGeometry = new THREE.SphereGeometry(1.5, State.ball_long_divs, State.ball_lat_divs);
@@ -19,6 +19,13 @@ export class Player {
       emissive: '#222',
       shininess: 40,
     });
+
+    // Add random color setting after material creation
+    this.material.color.setRGB(
+      Math.random(),  // CoffeeScript version divided by 100, but that's unnecessary
+      Math.random(), 
+      Math.random()
+    );
 
     const playerMass = BASE_MASS * State.slow_factor;
 
@@ -68,7 +75,7 @@ export class Player {
     }, true);
 
     new TWEEN.Tween(this.material)
-      .to({ opacity: 1 }, 1500)
+      .to({ opacity: 1 }, FADE_IN_TIME)
       .start();
   }
 
