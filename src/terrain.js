@@ -1,11 +1,14 @@
 import * as THREE from 'three';
 import { State } from './state';
 import TWEEN from '@tweenjs/tween.js';
+import RAPIER from '@dimforge/rapier3d-compat';
 // Import the Terrain class from the .mjs file
 import 'three.terrain.js/build/THREE.Terrain.js';
 window.THREE = THREE;
+
+
 export class Terrain {
-  constructor(scene, afterLoad) {
+  constructor(scene, world, afterLoad) {
     this.xS = 63;
     this.yS = 63;
     this.xSize = 128;
@@ -14,10 +17,11 @@ export class Terrain {
     this.minHeight = -20;
     this.snowTop = 20;
     this.scene = scene;
+    this.world = world; // Rapier physics world
     this.afterLoad = afterLoad;
 
-    // Add physics material properties
-    this.groundMaterial = new THREE.MeshStandardMaterial({
+    // Material for visual debugging (optional)
+    this.debugMaterial = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       transparent: true,
       opacity: 0.05,
@@ -30,13 +34,18 @@ export class Terrain {
   addEarth() {
     const textureLoader = new THREE.TextureLoader();
 
-    // Load all textures
     Promise.all([
       textureLoader.loadAsync('img/sand1.jpg'),
       textureLoader.loadAsync('img/grass1.jpg'),
       textureLoader.loadAsync('img/stone1.jpg'),
       textureLoader.loadAsync('img/snow1.jpg')
     ]).then(([sandTexture, grassTexture, stoneTexture, snowTexture]) => {
+      // Set texture repeat and wrap settings
+      [sandTexture, grassTexture, stoneTexture, snowTexture].forEach(texture => {
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(4, 4);
+      });
+
       // Create blended material using THREETerrain
       const material = THREETerrain.generateBlendedMaterial([
         { texture: sandTexture },
@@ -84,30 +93,48 @@ export class Terrain {
         ySize: this.ySize
       });
 
-      // Get the terrain scene
+      // Get the terrain scene and mesh
       this.visual = terrain;
-      
-      // Store geometry reference
-      this.geo = this.visual.children[0].geometry;
-      // Store base positions for transformations
-      this.geo._vBase = Array.from(this.geo.attributes.position.array);
+      const terrainMesh = this.visual.children[0];
 
-      // Create physics mesh
-      this.geo.computeFaceNormals();
-      this.geo.computeVertexNormals();
-      this.tangible = new Physijs.HeightfieldMesh(
-        this.geo,
-        this.groundMaterial,
-        0,
+      // Store geometry reference
+      this.geo = terrainMesh.geometry;
+
+      // Store base positions for transformations
+      const positionAttribute = this.geo.getAttribute('position');
+      this.geo._vBase = Float32Array.from(positionAttribute.array);
+
+      // Create heightfield data for Rapier
+      const heights = new Float32Array((this.xS + 1) * (this.yS + 1));
+      for (let i = 0; i < heights.length; i++) {
+        const vertexIndex = i * 3 + 2; // z-component of each vertex
+        heights[i] = this.geo._vBase[vertexIndex];
+      }
+
+      // Create Rapier heightfield collider
+      const terrainScale = { x: this.xSize / this.xS, y: 1, z: this.ySize / this.yS };
+      const colliderDesc = RAPIER.ColliderDesc.heightfield(
         this.xS,
-        this.yS
+        this.yS,
+        heights,
+        terrainScale
       );
 
-      this.tangible.rotation.x = -Math.PI / 2;
-      this.visual.children[0].receiveShadow = true;
+      // Position the collider at the center of the terrain
+      colliderDesc.setTranslation(
+        -this.xSize / 2,
+        0,
+        -this.ySize / 2
+      );
 
-      // Add to scene
-      this.scene.add(this.tangible);
+      // Create the collider and store it
+      this.tangible = this.world.createCollider(colliderDesc);
+
+      // Set up shadows
+      terrainMesh.receiveShadow = true;
+      terrainMesh.castShadow = true;
+
+      // Add visual mesh to scene
       this.scene.add(this.visual);
 
       // Call afterLoad callback
@@ -115,6 +142,49 @@ export class Terrain {
         this.afterLoad();
       }
     });
+  }
+
+  adjustTile() {
+    if (!this.geo?._vBase) return;
+
+    const positionAttribute = this.geo.getAttribute('position');
+    const positions = positionAttribute.array;
+
+    // Create new heights array for Rapier
+    const heights = new Float32Array((this.xS + 1) * (this.yS + 1));
+
+    // Update vertex positions and collect heights
+    for (let i = 0, j = 0; i < positions.length; i += 3, j++) {
+      const newZ = this.minHeight + (this.geo._vBase[i + 2] - this.minHeight) * this.terrainScale;
+      positions[i + 2] = newZ;
+      heights[j] = newZ;
+    }
+
+    // Remove old collider
+    if (this.tangible) {
+      this.world.removeCollider(this.tangible, true);
+    }
+
+    // Create new collider with updated heights
+    const terrainScale = { x: this.xSize / this.xS, y: 1, z: this.ySize / this.yS };
+    const colliderDesc = RAPIER.ColliderDesc.heightfield(
+      this.xS,
+      this.yS,
+      heights,
+      terrainScale
+    );
+
+    colliderDesc.setTranslation(
+      -this.xSize / 2,
+      0,
+      -this.ySize / 2
+    );
+
+    this.tangible = this.world.createCollider(colliderDesc);
+
+    // Update visual geometry
+    positionAttribute.needsUpdate = true;
+    this.geo.computeVertexNormals();
   }
 
   setTarget(fraction = 0.5) {
@@ -137,18 +207,5 @@ export class Terrain {
       .easing(TWEEN.Easing.Sinusoidal.InOut)
       .delay(State.staying_time)
       .start();
-  }
-
-  adjustTile() {
-    if (!this.geo?._vBase) return;
-
-    for (let i = 0; i < this.geo.vertices.length; i++) {
-      const newZ = this.minHeight + (this.geo._vBase[i] - this.minHeight) * this.terrainScale;
-      this.geo.vertices[i].z = newZ;
-      this.tangible.setPointByThreeGeomIndex(i, newZ);
-    }
-
-    this.tangible.flagUpdate();
-    this.geo.verticesNeedUpdate = true;
   }
 }

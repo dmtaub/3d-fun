@@ -84,7 +84,7 @@ export default class App {
     }
 
     // Initialize terrain and player
-    this.terrain = new Terrain(this.scene, () => {
+    this.terrain = new Terrain(this.scene, this.world, () => {
       requestAnimationFrame(() => this.render());
 
       this.player = new Player(this.world);
