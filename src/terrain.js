@@ -65,6 +65,8 @@ export class Terrain {
         opacity: opacity
     });
     this.testCube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    this.testCube.receiveShadow = true;
+
     this.testCube.position.set(0, y, 0);
     this.scene.add(this.testCube);
   }
