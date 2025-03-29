@@ -7,7 +7,8 @@ const BASE_MASS = 14.1 * 2;
 const FADE_IN_TIME = 1000;
 export class Player {
   constructor(world) {
-    const sphereGeometry = new THREE.SphereGeometry(1.5, State.ball_long_divs, State.ball_lat_divs);
+    const sphereRadius = 1.5; // This should match the SphereGeometry radius
+    const sphereGeometry = new THREE.SphereGeometry(sphereRadius, State.ball_long_divs, State.ball_lat_divs);
     this.material = new THREE.MeshPhongMaterial({
       opacity: 0,
       transparent: true,
@@ -42,7 +43,7 @@ export class Player {
     this.rigidBody = world.createRigidBody(rigidBodyDesc);
 
     // Create collision shape
-    const colliderDesc = RAPIER.ColliderDesc.ball(1.5)
+    const colliderDesc = RAPIER.ColliderDesc.ball(sphereRadius)
       .setRestitution(State.ground_restitution)
       .setFriction(State.ground_friction)
       .setMass(playerMass);

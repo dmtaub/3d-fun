@@ -127,8 +127,12 @@ export class Terrain {
         -this.ySize / 2
       );
 
+      // Create a static rigid body for the terrain
+      const rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
+      const rigidBody = this.world.createRigidBody(rigidBodyDesc);
+
       // Create the collider and store it
-      this.tangible = this.world.createCollider(colliderDesc);
+      this.tangible = this.world.createCollider(colliderDesc, rigidBody);
 
       // Set up shadows
       terrainMesh.receiveShadow = true;
