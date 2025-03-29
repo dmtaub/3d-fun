@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { State } from './state';
-import TWEEN from '@tweenjs/tween.js';
+import * as TWEEN from '@tweenjs/tween.js';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 
 const BASE_MASS = 14.1 * 8;

@@ -117,7 +117,6 @@ export default class App {
     }
 
     if (this.player) {
-      debugger; // doesn't get here for some reason?
       if (this.playerCamera) {
         const x = this.player.shape.position.x + 20;
         const y = this.player.shape.position.y + 20;
