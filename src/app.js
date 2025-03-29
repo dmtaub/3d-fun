@@ -52,11 +52,11 @@ export default class App {
       document.getElementById('viewport').appendChild(this.physicsStats.domElement);
     }
 
-    // Note: We'll need to implement Physijs.Scene or use a different physics engine
-    // For now, we'll use a basic THREE.Scene
+    // Set up the THREE.js scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x87CEEB); // Sky blue background
 
+    // Set up the camera
     const x = 2.5;
     this.camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 1000);
     this.camera.position.set(60 * x, 50 * x, 60 * x);
