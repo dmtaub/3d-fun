@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { State } from './state';
-import TWEEN from '@tweenjs/tween.js';
+import * as TWEEN from '@tweenjs/tween.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 // Import the Terrain class from the .mjs file
 import 'three.terrain.js/build/THREE.Terrain.js';
