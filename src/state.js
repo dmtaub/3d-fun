@@ -18,4 +18,4 @@ export const State = {
   min_vector: MAX_VECTOR.clone().multiplyScalar(-1),
   transition_time: 1500,
   staying_time: 500
-}; 
+};

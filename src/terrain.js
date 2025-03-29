@@ -19,7 +19,7 @@ export class Terrain {
 
   addEarth() {
     const textureLoader = new THREE.TextureLoader();
-    
+
     // Load textures
     Promise.all([
       textureLoader.loadAsync('img/sand1.jpg'),
@@ -29,7 +29,7 @@ export class Terrain {
     ]).then(([sandTexture, grassTexture, stoneTexture, snowTexture]) => {
       // Create terrain geometry
       const geometry = new THREE.PlaneGeometry(this.xSize, this.ySize, this.xS, this.yS);
-      
+
       // Create material with texture blending
       const material = new THREE.MeshStandardMaterial({
         map: grassTexture,
@@ -89,4 +89,4 @@ export class Terrain {
     geometry.attributes.position.needsUpdate = true;
     geometry.computeVertexNormals();
   }
-} 
+}

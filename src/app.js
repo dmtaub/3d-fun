@@ -86,7 +86,7 @@ export default class App {
     // Initialize terrain and player
     this.terrain = new Terrain(this.scene, () => {
       requestAnimationFrame(() => this.render());
-      
+
       this.player = new Player(this.world);
       this.controls = new Controls(this.player);
 
@@ -101,37 +101,40 @@ export default class App {
 
   render() {
     requestAnimationFrame(() => this.render());
-    
+
     // Step the physics world
     this.world.step();
-    
+
     // Update player physics
     if (this.player) {
       this.player.update();
     }
-    
+
     this.renderer.render(this.scene, this.camera);
-    
+
     if (State.enable_stats) {
       this.renderStats.update();
     }
 
-    if (this.playerCamera) {
-      const x = this.player.shape.position.x + 20;
-      const y = this.player.shape.position.y + 20;
-      const z = this.player.shape.position.z + 20;
-      this.camera.position.set(x, y, z);
-      this.camera.lookAt(this.player.shape.position);
-    }
+    if (this.player) {
+      debugger; // doesn't get here for some reason?
+      if (this.playerCamera) {
+        const x = this.player.shape.position.x + 20;
+        const y = this.player.shape.position.y + 20;
+        const z = this.player.shape.position.z + 20;
+        this.camera.position.set(x, y, z);
+        this.camera.lookAt(this.player.shape.position);
+      }
 
-    if (this.player.shape.position.y < -20) {
-      this.scene.remove(this.player.shape);
-      this.player.resetPosition();
-      this.scene.add(this.player.shape);
+      if (this.player.shape.position.y < -20) {
+        this.scene.remove(this.player.shape);
+        this.player.resetPosition();
+        this.scene.add(this.player.shape);
+      }
     }
 
     if (State.fancy_ball) {
       this.cubeCamera.update(this.renderer, this.scene);
     }
   }
-} 
+}

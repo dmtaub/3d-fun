@@ -83,4 +83,4 @@ export class Controls {
       this.player.rigidBody.applyImpulse({ x: 0, y: this.jumpVelocity, z: 0 }, true);
     }
   }
-} 
+}
