@@ -31,7 +31,7 @@ export default class App {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMapSoft = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.getElementById('viewport').appendChild(this.renderer.domElement);
 
     if (State.enable_stats) {
@@ -73,9 +73,9 @@ export default class App {
     light.shadow.camera.top = -60;
     light.shadow.camera.right = 60;
     light.shadow.camera.bottom = 60;
-    light.shadow.camera.near = 20;
+    light.shadow.camera.near = 0.5;
     light.shadow.camera.far = 200;
-    light.shadow.bias = -0.0001;
+    light.shadow.bias = -0.001;
     light.shadow.mapSize.width = light.shadow.mapSize.height = 2048;
     this.scene.add(light);
 
