@@ -4,7 +4,7 @@ import { Terrain } from './terrain';
 import { Controls } from './controls';
 import { Player } from './player';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-import TWEEN from '@tweenjs/tween.js';
+import * as TWEEN from '@tweenjs/tween.js';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 
 export default class App {
@@ -109,7 +109,7 @@ export default class App {
     if (this.player) {
       this.player.update();
     }
-
+    TWEEN.update();
     this.renderer.render(this.scene, this.camera);
 
     if (State.enable_stats) {

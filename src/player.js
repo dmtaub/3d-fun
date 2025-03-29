@@ -4,7 +4,7 @@ import * as TWEEN from '@tweenjs/tween.js';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 
 const BASE_MASS = 14.1 * 2;
-const FADE_IN_TIME = 150;
+const FADE_IN_TIME = 1000;
 export class Player {
   constructor(world) {
     const sphereGeometry = new THREE.SphereGeometry(1.5, State.ball_long_divs, State.ball_lat_divs);
