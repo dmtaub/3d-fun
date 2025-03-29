@@ -28,17 +28,13 @@ export class Terrain {
     this.addEarth();
   }
 
-  debugSurface(options = {}) {
-    // Default options
-    const defaults = {
-        size: 50,
-        height: 1,
-        y: -5,
-        color: 0xff0000,
-        opacity: 0.5
-    };
-    const config = { ...defaults, ...options };
-
+  debugSurface({
+    size = 50,
+    height = 1,
+    y = -5,
+    color = 0xff0000,
+    opacity = 0.5
+  } = {}) {
     // Remove existing debug objects if they exist
     if (this.testCollider) {
         this.world.removeCollider(this.testCollider, true);
@@ -50,26 +46,26 @@ export class Terrain {
     // Create physics collider
     const groundRigidBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
     const cubeColliderDesc = RAPIER.ColliderDesc.cuboid(
-        config.size,
-        config.height,
-        config.size
+        size,
+        height,
+        size
     );
-    cubeColliderDesc.setTranslation(0, config.y, 0);
+    cubeColliderDesc.setTranslation(0, y, 0);
     this.testCollider = this.world.createCollider(cubeColliderDesc, groundRigidBody);
 
     // Create visual representation
     const cubeGeometry = new THREE.BoxGeometry(
-        config.size * 2,
-        config.height * 2,
-        config.size * 2
+        size * 2,
+        height * 2,
+        size * 2
     );
     const cubeMaterial = new THREE.MeshPhongMaterial({
-        color: config.color,
+        color: color,
         transparent: true,
-        opacity: config.opacity
+        opacity: opacity
     });
     this.testCube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    this.testCube.position.set(0, config.y, 0);
+    this.testCube.position.set(0, y, 0);
     this.scene.add(this.testCube);
   }
 
