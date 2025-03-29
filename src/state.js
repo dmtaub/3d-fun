@@ -17,5 +17,6 @@ export const State = {
   max_vector: MAX_VECTOR,
   min_vector: MAX_VECTOR.clone().multiplyScalar(-1),
   transition_time: 1500,
-  staying_time: 500
+  staying_time: 500,
+  debug: localStorage.getItem('debug') === 'true'
 };
