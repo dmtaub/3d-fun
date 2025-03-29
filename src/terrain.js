@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { State } from './state';
 import TWEEN from '@tweenjs/tween.js';
-
+// Import the Terrain class from the .mjs file
+import 'three.terrain.js/build/THREE.Terrain.js';
+window.THREE = THREE;
 export class Terrain {
   constructor(scene, afterLoad) {
     this.xS = 63;
@@ -35,8 +37,8 @@ export class Terrain {
       textureLoader.loadAsync('img/stone1.jpg'),
       textureLoader.loadAsync('img/snow1.jpg')
     ]).then(([sandTexture, grassTexture, stoneTexture, snowTexture]) => {
-      // Create blended material using THREE.Terrain helper
-      const material = THREE.Terrain.generateBlendedMaterial([
+      // Create blended material using THREETerrain
+      const material = THREETerrain.generateBlendedMaterial([
         { texture: sandTexture },
         {
           texture: grassTexture,
@@ -66,25 +68,29 @@ export class Terrain {
         }
       ]);
 
-      // Create terrain using THREE.Terrain
-      this.visual = THREE.Terrain({
-        easing: THREE.Terrain.Linear,
+      // Create new terrain instance
+      const terrain = new THREETerrain({
+        easing: THREETerrain.Linear,
         frequency: 2.5,
-        heightmap: THREE.Terrain.DiamondSquare,
+        heightmap: THREETerrain.DiamondSquare,
         material: material,
         maxHeight: this.maxHeight,
         minHeight: this.minHeight,
         steps: 10,
-        useBufferGeometry: false,
+        useBufferGeometry: true,
         xSegments: this.xS,
         xSize: this.xSize,
         ySegments: this.yS,
         ySize: this.ySize
       });
 
-      // Store base vertices for transformations
+      // Get the terrain scene
+      this.visual = terrain;
+      
+      // Store geometry reference
       this.geo = this.visual.children[0].geometry;
-      this.geo._vBase = this.geo.vertices.map(v => v.clone());
+      // Store base positions for transformations
+      this.geo._vBase = Array.from(this.geo.attributes.position.array);
 
       // Create physics mesh
       this.geo.computeFaceNormals();
@@ -137,7 +143,7 @@ export class Terrain {
     if (!this.geo?._vBase) return;
 
     for (let i = 0; i < this.geo.vertices.length; i++) {
-      const newZ = this.minHeight + (this.geo._vBase[i].z - this.minHeight) * this.terrainScale;
+      const newZ = this.minHeight + (this.geo._vBase[i] - this.minHeight) * this.terrainScale;
       this.geo.vertices[i].z = newZ;
       this.tangible.setPointByThreeGeomIndex(i, newZ);
     }
