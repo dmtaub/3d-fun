@@ -11,7 +11,7 @@ export const State = {
   max_height: 0,
   ground_friction: 0,
   ground_restitution: 0.2,
-  fancy_ball: false,
+  fancy_ball: localStorage.getItem('fancy') === 'true',
   ball_lat_divs: 6,
   ball_long_divs: 12,
   max_vector: MAX_VECTOR,
