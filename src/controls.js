@@ -3,7 +3,7 @@ import { State } from './state';
 export class Controls {
   constructor(player) {
     this.player = player;
-    this.jumpVelocity = 22;
+    this.jumpVelocity = State.default_jump_velocity || 22;
     this.linearDamping = 0.5;
     this.angularDamping = 0.8;
     this.linearFactor = 0.3 * State.slow_factor;
@@ -16,6 +16,7 @@ export class Controls {
     window.addEventListener('keydown', (e) => {
       if (!this.keys[e.key]) {
         this.keys[e.key] = true;
+        // console.log("KEY DOWN: ", e.key);
         this.handleKeyPress(e.key);
         // Start interval for held keys
         this.keyIntervals[e.key] = setInterval(() => {
@@ -31,6 +32,31 @@ export class Controls {
         delete this.keyIntervals[e.key];
       }
     });
+
+    // Add convenience methods for querying key states
+    this.isDown = this.isDown.bind(this);
+    this.areDown = this.areDown.bind(this);
+    this.isAnyDown = this.isAnyDown.bind(this);
+  }
+
+  // Returns true if the specified key is currently pressed down
+  isDown(key) {
+    return this.keys[key] === true;
+  }
+
+  // Returns true if all of the specified keys are currently pressed down
+  areDown(keyArray) {
+    return keyArray.every(key => this.isDown(key));
+  }
+
+  // Returns true if any of the specified keys are currently pressed down
+  isAnyDown(keyArray) {
+    return keyArray.some(key => this.isDown(key));
+  }
+
+  // Returns a copy of the current key state object
+  getKeyStates() {
+    return {...this.keys};
   }
 
   jump(scale = 2) {
@@ -93,48 +119,45 @@ export class Controls {
     // todo: consider moving this to game loop to sounds etc
     const contactGround = this.player.isOnGround();
 
-    switch (key) {
-      case 'ArrowRight':
-      case 'd':
-        newVel.x += this.linearFactor;
-        newVel.z -= this.linearFactor;
-        if (contactGround) {
-          newAngVel.x -= this.rotationalFactor;
-          newAngVel.z -= this.rotationalFactor;
-        }
-        break;
-      case 'ArrowLeft':
-      case 'a':
-        newVel.x -= this.linearFactor;
-        newVel.z += this.linearFactor;
-        if (contactGround) {
-          newAngVel.x += this.rotationalFactor;
-          newAngVel.z += this.rotationalFactor;
-        }
-        break;
-      case 'ArrowUp':
-      case 'w':
-        newVel.x -= this.linearFactor;
-        newVel.z -= this.linearFactor;
-        if (contactGround) {
-          newAngVel.x -= this.rotationalFactor;
-          newAngVel.z += this.rotationalFactor;
-        }
-        break;
-      case 'ArrowDown':
-      case 's':
-        newVel.x += this.linearFactor;
-        newVel.z += this.linearFactor;
-        if (contactGround) {
-          newAngVel.x += this.rotationalFactor;
-          newAngVel.z -= this.rotationalFactor;
-        }
-        break;
-      case ' ':
-        if (contactGround) {
-          newVel.y = this.jumpVelocity;
-        }
-        break;
+    // Use the new API to check for key states
+    if (this.isAnyDown(['ArrowRight', 'd'])) {
+      newVel.x += this.linearFactor;
+      newVel.z -= this.linearFactor;
+      if (contactGround) {
+        newAngVel.x -= this.rotationalFactor;
+        newAngVel.z -= this.rotationalFactor;
+      }
+    }
+
+    if (this.isAnyDown(['ArrowLeft', 'a'])) {
+      newVel.x -= this.linearFactor;
+      newVel.z += this.linearFactor;
+      if (contactGround) {
+        newAngVel.x += this.rotationalFactor;
+        newAngVel.z += this.rotationalFactor;
+      }
+    }
+
+    if (this.isAnyDown(['ArrowUp', 'w'])) {
+      newVel.x -= this.linearFactor;
+      newVel.z -= this.linearFactor;
+      if (contactGround) {
+        newAngVel.x -= this.rotationalFactor;
+        newAngVel.z += this.rotationalFactor;
+      }
+    }
+
+    if (this.isAnyDown(['ArrowDown', 's'])) {
+      newVel.x += this.linearFactor;
+      newVel.z += this.linearFactor;
+      if (contactGround) {
+        newAngVel.x += this.rotationalFactor;
+        newAngVel.z -= this.rotationalFactor;
+      }
+    }
+
+    if (this.isDown(' ') && contactGround) {
+      newVel.y = this.jumpVelocity;
     }
 
     // Clamp velocities

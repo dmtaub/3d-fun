@@ -23,7 +23,7 @@ export default class App {
   async initPhysics() {
     // Initialize Rapier physics
     await RAPIER.init();
-    const gravity = { x: 0.0, y: -9.81, z: 0.0 };
+    const gravity = { x: 0.0, y: this.config.gravity || -9.81, z: 0.0 };
     this.world = new RAPIER.World(gravity);
   }
 

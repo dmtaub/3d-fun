@@ -31,8 +31,6 @@ export class Player {
       Math.random()
     );
 
-    const playerMass = BASE_MASS * State.slow_factor;
-
     // Create Three.js mesh
     this.shape = new THREE.Mesh(sphereGeometry, this.material);
     this.shape.castShadow = true;
@@ -47,13 +45,13 @@ export class Player {
 
     // Create collision shape
     const colliderDesc = RAPIER.ColliderDesc.ball(this.sphereRadius)
-      .setRestitution(State.ground_restitution)
-      .setFriction(State.ball_friction)
-      .setMass(playerMass);
+      .setRestitution(State.ball_restitution || 0.2)
+      .setFriction(State.ball_friction || 5)
+      .setMass(State.ball_mass || 22);
 
     this.collider = world.createCollider(colliderDesc, this.rigidBody);
 
-    console.log("MASS: ", playerMass);
+    console.log("MASS: ", State.ball_mass);
     this.resetPosition();
   }
 
@@ -91,7 +89,7 @@ export class Player {
     // If we're moving upward with any significant velocity, we're definitely not grounded
     if (velocity.y > 0.5) return false;
 
-    // Cast a ray downward from the player
+    // Cast a ray downward from the player, starting out of the sphere
     const position = this.rigidBody.translation();
     const rayOrigin = { x: position.x, y: position.y - this.sphereRadius - BUFFER_START, z: position.z };
     const rayDirection = { x: 0, y: -1, z: 0 };
@@ -99,10 +97,9 @@ export class Player {
     // Create a ray with a short maximum length (adjust based on player size)
     const ray = new RAPIER.Ray(rayOrigin, rayDirection);
     const maxToi = this.sphereRadius + BUFFER_HIT; // Slightly more than the player's radius
-    const solid = true;
 
     // Cast the ray and check for intersection, exclude the sphere itself
-    const hit = this.world.castRay(ray, maxToi, solid);
+    const hit = this.world.castRay(ray, maxToi, true);
 
     // We're on ground if we have a hit and the vertical velocity is low
     return hit !== null && isAlmostStopped;
