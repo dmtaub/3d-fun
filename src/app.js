@@ -37,19 +37,9 @@ export default class App {
     if (State.enable_stats) {
       // Add frame rate (top)
       this.renderStats = new Stats();
-      this.renderStats.domElement.style.position = 'absolute';
-      this.renderStats.domElement.style.top = '0px';
-      this.renderStats.domElement.style.zIndex = 100;
-      this.renderStats.domElement.title = 'for rendering';
-      document.getElementById('viewport').appendChild(this.renderStats.domElement);
-
-      // Add simulation rate (bot)
-      this.physicsStats = new Stats();
-      this.physicsStats.domElement.style.position = 'absolute';
-      this.physicsStats.domElement.style.top = '50px';
-      this.physicsStats.domElement.style.zIndex = 100;
-      this.physicsStats.domElement.title = 'for physics';
-      document.getElementById('viewport').appendChild(this.physicsStats.domElement);
+      this.renderStats.domElement.style.position = 'unset';
+      this.renderStats.domElement.style.float = 'right';
+      document.getElementById('heading').appendChild(this.renderStats.domElement);
     }
 
     // Set up the THREE.js scene
