@@ -98,20 +98,20 @@ export class Terrain {
     }
 
     // Create Rapier heightfield collider
-    const terrainScale = { x: 1, y: 1, z: 1 };
-    // const terrainScale = { x: this.xSize / this.xS, y: 10, z: this.ySize / this.yS };
-
+    // const terrainScale = { x: 1, y: 1, z: 1 };
+    const terrainScale = { x: this.xSize, y: 1, z: this.ySize };
+    console.log(terrainScale);
     // Create a static rigid body for the terrain
     const terrainRigidBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
     const terrainColliderDesc = RAPIER.ColliderDesc.heightfield(
       this.xS,
       this.yS,
-      this.heights,
+      this.heightsColMajor,
       terrainScale
     );
 
     // Position the collider at the center of the terrain
-    terrainColliderDesc.setTranslation(0, -1, 0);
+    terrainColliderDesc.setTranslation(0, 0, 0);
 
     // Create the collider and store it
     this.tangible = this.world.createCollider(terrainColliderDesc, terrainRigidBody);
