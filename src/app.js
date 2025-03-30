@@ -54,6 +54,19 @@ export default class App {
     this.scene.add(this.camera);
     this.playerCamera = false;
 
+    // Add ESC key handler for camera toggle
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        if (this.playerCamera) {
+          this.playerCamera = false;
+          this.camera.position.set(60 * x, 50 * x, 60 * x);
+          this.camera.lookAt(this.scene.position);
+        } else {
+          this.playerCamera = true;
+        }
+      }
+    });
+
     // Light
     const light = new THREE.DirectionalLight(0xFFFFFF);
     light.position.set(20, 40, -15);
