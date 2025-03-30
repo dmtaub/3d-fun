@@ -49,7 +49,8 @@ export class Terrain {
         size,
         height,
         size
-    );
+    ).setFriction(State.ground_friction);
+
     cubeColliderDesc.setTranslation(0, y, 0);
     this.testCollider = this.world.createCollider(cubeColliderDesc, groundRigidBody);
 
@@ -107,7 +108,7 @@ export class Terrain {
       this.yS,
       this.heightsColMajor,
       terrainScale
-    );
+    ).setFriction(State.ground_friction);
 
     // Position the collider at the center of the terrain
     terrainColliderDesc.setTranslation(0, 0, 0);

@@ -3,7 +3,7 @@ import { State } from './state';
 import * as TWEEN from '@tweenjs/tween.js';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 
-const BASE_MASS = 14.1 * 2;
+const BASE_MASS = 50;
 const FADE_IN_TIME = 1000;
 const BUFFER_START = 0.01;
 const BUFFER_HIT = 0.3;
@@ -48,7 +48,7 @@ export class Player {
     // Create collision shape
     const colliderDesc = RAPIER.ColliderDesc.ball(this.sphereRadius)
       .setRestitution(State.ground_restitution)
-      .setFriction(State.ground_friction)
+      .setFriction(State.ball_friction)
       .setMass(playerMass);
 
     this.collider = world.createCollider(colliderDesc, this.rigidBody);
