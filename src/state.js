@@ -33,3 +33,5 @@ export const State = {
 
   debug: localStorage.getItem('debug') === 'true'
 };
+
+console.log(State);

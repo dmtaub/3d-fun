@@ -1,13 +1,15 @@
 import { State } from './state';
 
 export class Controls {
+  get jumpVelocity() { return State.default_jump_velocity || 22; }
+  get linearFactor() { return 0.3 / State.slow_factor; }
+  get rotationalFactor() { return 10 / State.slow_factor; }
+
   constructor(player) {
     this.player = player;
-    this.jumpVelocity = State.default_jump_velocity || 22;
+
     this.linearDamping = 0.5;
     this.angularDamping = 0.8;
-    this.linearFactor = 0.3 * State.slow_factor;
-    this.rotationalFactor = 10 * State.slow_factor;
 
     // Set up keyboard controls with repeat
     this.keys = {};
