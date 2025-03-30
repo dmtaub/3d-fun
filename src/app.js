@@ -44,7 +44,7 @@ export default class App {
 
     // Set up the THREE.js scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x87CEEB); // Sky blue background
+    this.scene.background = new THREE.Color(0x020508); // Dark blue-black background
 
     // Set up the camera
     const x = 2.5;
