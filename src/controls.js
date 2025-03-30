@@ -46,26 +46,26 @@ export class Controls {
 
   setupActions(terrain) {
     this.terrain = terrain;
-    const doAfterDelay = () => {
-      this.jump();
-    };
+    // const doAfterDelay = () => {
+    //   this.jump();
+    // };
     const delay = State.transition_time / 2;
 
     window.addEventListener('keyup', (e) => {
       switch(e.key.toLowerCase()) {
         case '=':
           this.terrain.setTarget(2); // "forward"
-          if (this.terrain.lastScale < 1) {
-            // this.jump(); - was added to help a bug in the past
-            setTimeout(doAfterDelay, delay);
-          }
+          // if (this.terrain.lastScale < 1) {
+          //   // this.jump(); - was added to help a bug in the past
+          //   setTimeout(doAfterDelay, delay);
+          // }
           break;
         case '-':
           this.terrain.setTarget(this.terrain.lastScale);
-          if (this.terrain.lastScale > 1) {
-            // this.jump(); - was added to help a bug in the past
-            setTimeout(doAfterDelay, delay);
-          }
+          // if (this.terrain.lastScale > 1) {
+          //   // this.jump(); - was added to help a bug in the past
+          //   setTimeout(doAfterDelay, delay);
+          // }
           break;
         case '0':
           this.terrain.setTarget(0);
