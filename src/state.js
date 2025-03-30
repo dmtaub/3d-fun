@@ -7,7 +7,10 @@ const MAX_VECTOR = new THREE.Vector3(20, 5000, 20);
 export const State = {
   disable_arrows: false,
   enable_stats: STATS,
+
   slow_factor: localStorage.getItem('slow') === 'true' ? 3 : 1,
+  roll_only: localStorage.getItem('rollOnly') == 'true',
+
   max_height: 0,
 
   // Physics parameters - comment out to use default values

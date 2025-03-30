@@ -118,11 +118,13 @@ export class Controls {
 
     // todo: consider moving this to game loop to sounds etc
     const contactGround = this.player.isOnGround();
-
+    const useLinearVelocity = !State.roll_only;
     // Use the new API to check for key states
     if (this.isAnyDown(['ArrowRight', 'd'])) {
-      newVel.x += this.linearFactor;
-      newVel.z -= this.linearFactor;
+      if (useLinearVelocity) {
+        newVel.x += this.linearFactor;
+        newVel.z -= this.linearFactor;
+      }
       if (contactGround) {
         newAngVel.x -= this.rotationalFactor;
         newAngVel.z -= this.rotationalFactor;
@@ -130,8 +132,10 @@ export class Controls {
     }
 
     if (this.isAnyDown(['ArrowLeft', 'a'])) {
-      newVel.x -= this.linearFactor;
-      newVel.z += this.linearFactor;
+      if (useLinearVelocity) {
+        newVel.x -= this.linearFactor;
+        newVel.z += this.linearFactor;
+      }
       if (contactGround) {
         newAngVel.x += this.rotationalFactor;
         newAngVel.z += this.rotationalFactor;
@@ -139,8 +143,10 @@ export class Controls {
     }
 
     if (this.isAnyDown(['ArrowUp', 'w'])) {
-      newVel.x -= this.linearFactor;
-      newVel.z -= this.linearFactor;
+      if (useLinearVelocity) {
+        newVel.x -= this.linearFactor;
+        newVel.z -= this.linearFactor;
+      }
       if (contactGround) {
         newAngVel.x -= this.rotationalFactor;
         newAngVel.z += this.rotationalFactor;
@@ -148,8 +154,10 @@ export class Controls {
     }
 
     if (this.isAnyDown(['ArrowDown', 's'])) {
-      newVel.x += this.linearFactor;
-      newVel.z += this.linearFactor;
+      if (useLinearVelocity) {
+        newVel.x += this.linearFactor;
+        newVel.z += this.linearFactor;
+      }
       if (contactGround) {
         newAngVel.x += this.rotationalFactor;
         newAngVel.z -= this.rotationalFactor;
