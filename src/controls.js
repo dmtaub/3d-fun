@@ -81,12 +81,6 @@ export class Controls {
     });
   }
 
-  isPlayerGrounded() {
-    // For Rapier, we'll need to check collision events
-    // This is a placeholder - you'll need to implement proper ground detection
-    // return this.player.rigidBody.collider(0).numContacts() > 0;
-    return true;
-  }
 
   handleKeyPress(key) {
     if (!this.player.rigidBody || State.disable_arrows) return;
@@ -96,7 +90,8 @@ export class Controls {
     let newVel = { x: velocity.x, y: velocity.y, z: velocity.z };
     let newAngVel = { x: angVelocity.x, y: angVelocity.y, z: angVelocity.z };
 
-    const contactGround = this.isPlayerGrounded();
+    // todo: consider moving this to game loop to sounds etc
+    const contactGround = this.player.isOnGround();
 
     switch (key) {
       case 'ArrowRight':

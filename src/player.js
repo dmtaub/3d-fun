@@ -5,10 +5,13 @@ import * as RAPIER from '@dimforge/rapier3d-compat';
 
 const BASE_MASS = 14.1 * 2;
 const FADE_IN_TIME = 1000;
+const BUFFER_START = 0.01;
+const BUFFER_HIT = 0.3;
 export class Player {
   constructor(world) {
-    const sphereRadius = 1.5; // This should match the SphereGeometry radius
-    const sphereGeometry = new THREE.SphereGeometry(sphereRadius, State.ball_long_divs, State.ball_lat_divs);
+    this.world = world;
+    this.sphereRadius = 1.5; // This should match the SphereGeometry radius
+    const sphereGeometry = new THREE.SphereGeometry(this.sphereRadius, State.ball_long_divs, State.ball_lat_divs);
     this.material = new THREE.MeshPhongMaterial({
       opacity: 0,
       transparent: true,
@@ -24,7 +27,7 @@ export class Player {
     // Add random color setting after material creation
     this.material.color.setRGB(
       Math.random(),  // CoffeeScript version divided by 100, but that's unnecessary
-      Math.random(), 
+      Math.random(),
       Math.random()
     );
 
@@ -43,7 +46,7 @@ export class Player {
     this.rigidBody = world.createRigidBody(rigidBodyDesc);
 
     // Create collision shape
-    const colliderDesc = RAPIER.ColliderDesc.ball(sphereRadius)
+    const colliderDesc = RAPIER.ColliderDesc.ball(this.sphereRadius)
       .setRestitution(State.ground_restitution)
       .setFriction(State.ground_friction)
       .setMass(playerMass);
@@ -78,6 +81,31 @@ export class Player {
     new TWEEN.Tween(this.material)
       .to({ opacity: 1 }, FADE_IN_TIME)
       .start();
+  }
+
+  isOnGround() {
+    // First check vertical velocity
+    const velocity = this.rigidBody.linvel();
+    const isAlmostStopped = Math.abs(velocity.y) < 0.2;
+
+    // If we're moving upward with any significant velocity, we're definitely not grounded
+    if (velocity.y > 0.5) return false;
+
+    // Cast a ray downward from the player
+    const position = this.rigidBody.translation();
+    const rayOrigin = { x: position.x, y: position.y - this.sphereRadius - BUFFER_START, z: position.z };
+    const rayDirection = { x: 0, y: -1, z: 0 };
+
+    // Create a ray with a short maximum length (adjust based on player size)
+    const ray = new RAPIER.Ray(rayOrigin, rayDirection);
+    const maxToi = this.sphereRadius + BUFFER_HIT; // Slightly more than the player's radius
+    const solid = true;
+
+    // Cast the ray and check for intersection, exclude the sphere itself
+    const hit = this.world.castRay(ray, maxToi, solid);
+
+    // We're on ground if we have a hit and the vertical velocity is low
+    return hit !== null && isAlmostStopped;
   }
 
   update() {
