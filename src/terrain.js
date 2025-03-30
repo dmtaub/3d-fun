@@ -125,10 +125,20 @@ export class Terrain {
     this.terrainGeom._vBase = Float32Array.from(positionAttribute.array);
 
     this.heights = new Float32Array((this.xS + 1) * (this.yS + 1));
+    this.heightsColMajor = new Float32Array((this.yS + 1) * (this.xS + 1));
+
     // set the heights to the base positions
     for (let i = 0; i < this.heights.length; i++) {
       const vertexIndex = i * 3 + 2; // z-component of each vertex
       this.heights[i] = this.terrainGeom._vBase[vertexIndex];
+
+      // Convert linear index to row and column coordinates
+      const row = Math.floor(i / (this.xS + 1));
+      const col = i % (this.xS + 1);
+
+      // Calculate column-major index and assign the same height value
+      const colMajorIndex = col * (this.yS + 1) + row;
+      this.heightsColMajor[colMajorIndex] = this.heights[i];
     }
     // Visualize the heightfield as points if debug is true
     if (State.debug) {
@@ -206,7 +216,6 @@ export class Terrain {
   }
 
   visualizeHeightfield() {
-
     // Remove previous visualization if it exists
     if (this.heightfieldPoints) {
       this.scene.remove(this.heightfieldPoints);
@@ -244,50 +253,26 @@ export class Terrain {
   }
 
   adjustTile() {
-    // if (!this.terrainGeom?._vBase) return;
+    if (!this.terrainGeom?._vBase) return;
+    const positionAttribute = this.terrainGeom.getAttribute('position');
+    const positions = positionAttribute.array;
 
-    // const positionAttribute = this.terrainGeom.getAttribute('position');
-    // const positions = positionAttribute.array;
-
-    // // Create new heights array for Rapier
-    // const heights = new Float32Array((this.xS + 1) * (this.yS + 1));
-
-    // // Update vertex positions and collect heights
-    // for (let i = 0, j = 0; i < positions.length; i += 3, j++) {
-    //   const newZ = this.minHeight + (this.terrainGeom._vBase[i + 2] - this.minHeight) * this.terrainScale;
-    //   positions[i + 2] = newZ;
-    //   heights[j] = newZ;
-    // }
-
-    // // Remove old collider
-    // if (this.tangible) {
-    //   this.world.removeCollider(this.tangible, true);
-    // }
-
-    // // Create new collider with updated heights
-    // const terrainScale = { x: this.xSize / this.xS, y: 1, z: this.ySize / this.yS };
-    // const colliderDesc = RAPIER.ColliderDesc.heightfield(
-    //   this.xS,
-    //   this.yS,
-    //   heights,
-    //   terrainScale
-    // );
-
-    // colliderDesc.setTranslation(
-    //   -this.xSize / 2,
-    //   0,
-    //   -this.ySize / 2
-    // );
-
-    // this.tangible = this.world.createCollider(colliderDesc);
-
+    // Update vertex positions and collect heights
+    for (let i = 0, j = 0; i < positions.length; i += 3, j++) {
+      const newZ = this.minHeight + (this.terrainGeom._vBase[i + 2] - this.minHeight) * this.terrainScale;
+      positions[i + 2] = newZ;
+    }
     // // Update visual geometry
-    // positionAttribute.needsUpdate = true;
-    // this.terrainGeom.computeVertexNormals();
+    positionAttribute.needsUpdate = true;
+    this.terrainGeom.computeVertexNormals();
+
+    if (State.debug) {
+      this.visualizeHeightfield();
+    }
   }
 
   setTarget(fraction = 0.5) {
-    if (!this.visual) return;
+    if (!this.terrainGeom) return;
 
     if (this.terrainScale === undefined) {
       this.terrainScale = 1;
