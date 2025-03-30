@@ -100,7 +100,6 @@ export class Terrain {
     // Create Rapier heightfield collider
     // const terrainScale = { x: 1, y: 1, z: 1 };
     const terrainScale = { x: this.xSize, y: 1, z: this.ySize };
-    console.log(terrainScale);
     // Create a static rigid body for the terrain
     const terrainRigidBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
     const terrainColliderDesc = RAPIER.ColliderDesc.heightfield(
@@ -136,6 +135,7 @@ export class Terrain {
       const row = Math.floor(i / (this.xS + 1));
       const col = i % (this.xS + 1);
 
+      // for physics
       // Calculate column-major index and assign the same height value
       const colMajorIndex = col * (this.yS + 1) + row;
       this.heightsColMajor[colMajorIndex] = this.heights[i];
@@ -254,6 +254,7 @@ export class Terrain {
 
   adjustTile() {
     if (!this.terrainGeom?._vBase) return;
+    // Update visual geometry
     const positionAttribute = this.terrainGeom.getAttribute('position');
     const positions = positionAttribute.array;
 
@@ -261,14 +262,23 @@ export class Terrain {
     for (let i = 0, j = 0; i < positions.length; i += 3, j++) {
       const newZ = this.minHeight + (this.terrainGeom._vBase[i + 2] - this.minHeight) * this.terrainScale;
       positions[i + 2] = newZ;
+
+      // for physics
+      const row = Math.floor(j / (this.xS + 1));
+      const col = j % (this.xS + 1);
+      const colMajorIndex = col * (this.yS + 1) + row;
+      this.heightsColMajor[colMajorIndex] = newZ;
     }
-    // // Update visual geometry
+    this.createPhysicsTerrain();
+
+    // set flag to update the geometry
     positionAttribute.needsUpdate = true;
     this.terrainGeom.computeVertexNormals();
 
     if (State.debug) {
       this.visualizeHeightfield();
     }
+
   }
 
   setTarget(fraction = 0.5) {
