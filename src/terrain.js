@@ -9,16 +9,25 @@ window.THREE = THREE;
 
 export class Terrain {
   constructor(scene, world, afterLoad) {
+    // terrain generation resolution
     this.xS = 63;
     this.yS = 63;
+    // terrain size
     this.xSize = 128;
     this.ySize = 128;
+    // terrain height
     this.maxHeight = State.max_height;
     this.minHeight = -20;
     this.snowTop = 20;
+    // scene
+
     this.scene = scene;
     this.world = world; // Rapier physics world
     this.afterLoad = afterLoad;
+
+    // Add new properties for physics resolution
+    this.physicsXS = 127; // Double the physics resolution
+    this.physicsYS = 127;
 
     // Create debug surface immediately
     if (State.debug) {
@@ -93,55 +102,74 @@ export class Terrain {
       }
     });
   }
-  createPhysicsTerrain() { // from heightfield
+  createPhysicsTerrain() {
     if (this.tangible) {
       this.world.removeCollider(this.tangible, true);
     }
 
-    // Create Rapier heightfield collider
-    // const terrainScale = { x: 1, y: 1, z: 1 };
     const terrainScale = { x: this.xSize, y: 1, z: this.ySize };
-    // Create a static rigid body for the terrain
     const terrainRigidBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
     const terrainColliderDesc = RAPIER.ColliderDesc.heightfield(
-      this.xS,
-      this.yS,
+      this.physicsXS,
+      this.physicsYS,
       this.heightsColMajor,
       terrainScale
     ).setFriction(State.ground_friction);
 
-    // Position the collider at the center of the terrain
     terrainColliderDesc.setTranslation(0, 0, 0);
-
-    // Create the collider and store it
     this.tangible = this.world.createCollider(terrainColliderDesc, terrainRigidBody);
-
   }
 
   createHeightfield() {
-    // Store base positions for transformations
     const positionAttribute = this.terrainGeom.getAttribute('position');
-    // monkeypatch the _vBase property to have the base positions
     this.terrainGeom._vBase = Float32Array.from(positionAttribute.array);
 
+    // Visual heights array stays the same
     this.heights = new Float32Array((this.xS + 1) * (this.yS + 1));
-    this.heightsColMajor = new Float32Array((this.yS + 1) * (this.xS + 1));
+    // Physics heights array uses higher resolution
+    this.heightsColMajor = new Float32Array((this.physicsYS + 1) * (this.physicsXS + 1));
 
-    // set the heights to the base positions
+    // Fill the visual heights array
     for (let i = 0; i < this.heights.length; i++) {
-      const vertexIndex = i * 3 + 2; // z-component of each vertex
+      const vertexIndex = i * 3 + 2;
       this.heights[i] = this.terrainGeom._vBase[vertexIndex];
-
-      // Convert linear index to row and column coordinates
-      const row = Math.floor(i / (this.xS + 1));
-      const col = i % (this.xS + 1);
-
-      // for physics
-      // Calculate column-major index and assign the same height value
-      const colMajorIndex = col * (this.yS + 1) + row;
-      this.heightsColMajor[colMajorIndex] = this.heights[i];
     }
-    // Visualize the heightfield as points if debug is true
+
+    // Interpolate heights for physics heightfield
+    for (let col = 0; col <= this.physicsXS; col++) {
+      for (let row = 0; row <= this.physicsYS; row++) {
+        // Convert physics coordinates to visual terrain space
+        const visualX = (col / this.physicsXS) * this.xS;
+        const visualY = (row / this.physicsYS) * this.yS;
+
+        // Get the four nearest visual terrain points
+        const x1 = Math.floor(visualX);
+        const x2 = Math.min(Math.ceil(visualX), this.xS);
+        const y1 = Math.floor(visualY);
+        const y2 = Math.min(Math.ceil(visualY), this.yS);
+
+        // Bilinear interpolation
+        const xAlpha = visualX - x1;
+        const yAlpha = visualY - y1;
+
+        const h11 = this.heights[y1 * (this.xS + 1) + x1];
+        const h21 = this.heights[y1 * (this.xS + 1) + x2];
+        const h12 = this.heights[y2 * (this.xS + 1) + x1];
+        const h22 = this.heights[y2 * (this.xS + 1) + x2];
+
+        const interpolatedHeight =
+          (1 - xAlpha) * (1 - yAlpha) * h11 +
+          xAlpha * (1 - yAlpha) * h21 +
+          (1 - xAlpha) * yAlpha * h12 +
+          xAlpha * yAlpha * h22;
+
+        // for physics
+        // Store in column-major format for physics
+        const colMajorIndex = col * (this.physicsYS + 1) + row;
+        this.heightsColMajor[colMajorIndex] = interpolatedHeight;
+      }
+    }
+
     if (State.debug) {
       this.visualizeHeightfield();
     }
@@ -217,26 +245,22 @@ export class Terrain {
   }
 
   visualizeHeightfield() {
-    // Remove previous visualization if it exists
     if (this.heightfieldPoints) {
       this.scene.remove(this.heightfieldPoints);
       this.heightfieldPoints = null;
     }
 
-    // Visualize the heightfield as points
-    // We need to convert the heights array to 3D positions
-    const positions = new Float32Array((this.xS + 1) * (this.yS + 1) * 3);
+    const positions = new Float32Array((this.physicsXS + 1) * (this.physicsYS + 1) * 3);
 
-    for (let i = 0; i <= this.yS; i++) {
-      for (let j = 0; j <= this.xS; j++) {
-        const index = i * (this.xS + 1) + j;
-        const posIndex = index * 3;
-
+    for (let i = 0; i <= this.physicsYS; i++) {
+      for (let j = 0; j <= this.physicsXS; j++) {
+        const colMajorIndex = j * (this.physicsYS + 1) + i;
+        const posIndex = (i * (this.physicsXS + 1) + j) * 3;
         // Calculate x and z based on the grid position
         // Scale and center the points to match the collider
-        positions[posIndex] = (j / this.xS) * this.xSize - this.xSize / 2;  // X coordinate
-        positions[posIndex + 1] = this.heights[index];                      // Y coordinate (height)
-        positions[posIndex + 2] = (i / this.yS) * this.ySize - this.ySize / 2;  // Z coordinate
+        positions[posIndex] = (j / this.physicsXS) * this.xSize - this.xSize / 2;
+        positions[posIndex + 1] = this.heightsColMajor[colMajorIndex];
+        positions[posIndex + 2] = (i / this.physicsYS) * this.ySize - this.ySize / 2;
       }
     }
 
