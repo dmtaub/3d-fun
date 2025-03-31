@@ -29,6 +29,14 @@ export class Terrain {
     this.physicsXS = 127; // Double the physics resolution
     this.physicsYS = 127;
 
+    // Add property for physics type
+    this.physicsType = State.physics_type || 'spheres'; // 'spheres' or 'heightfield'
+
+    // Properties for sphere-based physics
+    this.sphereRadius = 1;
+    this.sphereSpacing = 1;
+    this.sphereColliders = [];
+
     // Create debug surface immediately
     if (State.debug) {
       this.debugSurface();
@@ -103,10 +111,23 @@ export class Terrain {
     });
   }
   createPhysicsTerrain() {
-    if (this.tangible) {
-      this.world.removeCollider(this.tangible, true);
+    if (this.physicsType === 'heightfield') {
+      // Remove existing physics objects first
+      if (this.tangible) {
+        this.world.removeCollider(this.tangible, true);
+      }
+      this.createHeightfieldPhysics();
+    } else {
+      // Remove existing sphere colliders
+      for (const collider of this.sphereColliders) {
+        this.world.removeCollider(collider, true);
+      }
+      this.sphereColliders = [];
+      this.createSpherePhysics();
     }
+  }
 
+  createHeightfieldPhysics() {
     const terrainScale = { x: this.xSize, y: 1, z: this.ySize };
     const terrainRigidBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
     const terrainColliderDesc = RAPIER.ColliderDesc.heightfield(
@@ -118,6 +139,37 @@ export class Terrain {
 
     terrainColliderDesc.setTranslation(0, 0, 0);
     this.tangible = this.world.createCollider(terrainColliderDesc, terrainRigidBody);
+  }
+
+  createSpherePhysics() {
+    const positions = this.terrainGeom.getAttribute('position');
+    const xOffset = -this.xSize / 2;
+    const zOffset = -this.ySize / 2;
+
+    // Create fixed rigid body for all spheres
+    const groundRigidBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+
+    // Place spheres based on terrain height
+    for (let x = 0; x <= this.xS; x += this.sphereSpacing) {
+      for (let z = 0; z <= this.yS; z += this.sphereSpacing) {
+        const vertexIndex = (z * (this.xS + 1) + x) * 3;
+        const height = positions.array[vertexIndex + 2];
+
+        const worldX = (x / this.xS) * this.xSize + xOffset;
+        const worldZ = (z / this.yS) * this.ySize + zOffset;
+
+        const sphereDesc = RAPIER.ColliderDesc.ball(this.sphereRadius)
+          .setTranslation(worldX, height-this.sphereRadius/2, worldZ)
+          .setFriction(State.ground_friction);
+
+        const collider = this.world.createCollider(sphereDesc, groundRigidBody);
+        this.sphereColliders.push(collider);
+      }
+    }
+
+    if (State.debug) {
+      this.visualizeSphereColliders();
+    }
   }
 
   createHeightfield() {
@@ -277,33 +329,65 @@ export class Terrain {
     this.scene.add(this.heightfieldPoints);
   }
 
+  visualizeSphereColliders() {
+    // Remove existing visualization
+    if (this.debugSpheres) {
+      this.scene.remove(this.debugSpheres);
+    }
+
+    // Create sphere geometry and material
+    const sphereGeom = new THREE.SphereGeometry(this.sphereRadius, 8, 8);
+    const sphereMat = new THREE.MeshBasicMaterial({
+      color: 0x00ff00,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.3
+    });
+
+    // Create instanced mesh for all spheres
+    this.debugSpheres = new THREE.InstancedMesh(
+      sphereGeom,
+      sphereMat,
+      this.sphereColliders.length
+    );
+
+    // Set position for each sphere instance
+    const matrix = new THREE.Matrix4();
+    this.sphereColliders.forEach((collider, i) => {
+      const position = collider.translation();
+      matrix.setPosition(position.x, position.y, position.z);
+      this.debugSpheres.setMatrixAt(i, matrix);
+    });
+
+    this.scene.add(this.debugSpheres);
+  }
+
   adjustTile() {
     if (!this.terrainGeom?._vBase) return;
     // Update visual geometry
     const positionAttribute = this.terrainGeom.getAttribute('position');
     const positions = positionAttribute.array;
 
-    // Update vertex positions and collect heights
-    for (let i = 0, j = 0; i < positions.length; i += 3, j++) {
-      const newZ = this.minHeight + (this.terrainGeom._vBase[i + 2] - this.minHeight) * this.terrainScale;
-      positions[i + 2] = newZ;
-
-      // for physics
-      const row = Math.floor(j / (this.xS + 1));
-      const col = j % (this.xS + 1);
-      const colMajorIndex = col * (this.yS + 1) + row;
-      this.heightsColMajor[colMajorIndex] = newZ;
+    // Update vertex positions
+    for (let i = 0; i < positions.length; i += 3) {
+      positions[i + 2] = this.minHeight +
+        (this.terrainGeom._vBase[i + 2] - this.minHeight) * this.terrainScale;
     }
+
+    // Update physics representation
     this.createPhysicsTerrain();
 
-    // set flag to update the geometry
+    // Update visual mesh
     positionAttribute.needsUpdate = true;
     this.terrainGeom.computeVertexNormals();
 
     if (State.debug) {
-      this.visualizeHeightfield();
+      if (this.physicsType === 'heightfield') {
+        this.visualizeHeightfield();
+      } else {
+        this.visualizeSphereColliders();
+      }
     }
-
   }
 
   setTarget(fraction = 0.5) {

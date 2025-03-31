@@ -31,7 +31,9 @@ export const State = {
   transition_time: 1500,
   staying_time: 500,
 
-  debug: localStorage.getItem('debug') === 'true'
+  debug: localStorage.getItem('debug') === 'true',
+
+  physics_type: localStorage.getItem('physics_type') == 'spheres' ? 'spheres' : 'heightfield', // 'spheres' or 'heightfield'
 };
 
 console.log(State);
