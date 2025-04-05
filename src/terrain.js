@@ -146,29 +146,55 @@ export class Terrain {
     const xOffset = -this.xSize / 2;
     const zOffset = -this.ySize / 2;
 
-    // Create fixed rigid body for all spheres
+    // Create sensor rigid body for all spheres
     const groundRigidBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
 
     // Place spheres based on terrain height
     for (let x = 0; x <= this.xS; x += this.sphereSpacing) {
-      for (let z = 0; z <= this.yS; z += this.sphereSpacing) {
-        const vertexIndex = (z * (this.xS + 1) + x) * 3;
-        const height = positions.array[vertexIndex + 2];
+        for (let z = 0; z <= this.yS; z += this.sphereSpacing) {
+            const vertexIndex = (z * (this.xS + 1) + x) * 3;
+            const height = positions.array[vertexIndex + 2];
 
-        const worldX = (x / this.xS) * this.xSize + xOffset;
-        const worldZ = (z / this.yS) * this.ySize + zOffset;
+            const worldX = (x / this.xS) * this.xSize + xOffset;
+            const worldZ = (z / this.yS) * this.ySize + zOffset;
 
-        const sphereDesc = RAPIER.ColliderDesc.ball(this.sphereRadius)
-          .setTranslation(worldX, height-this.sphereRadius/2, worldZ)
-          .setFriction(State.ground_friction);
+            // Create main sphere as a sensor
+            const sphereDesc = RAPIER.ColliderDesc.ball(this.sphereRadius)
+                .setTranslation(worldX, height-this.sphereRadius/2, worldZ)
+                .setSensor(true); // Make it a sensor instead of a physical collider
 
-        const collider = this.world.createCollider(sphereDesc, groundRigidBody);
-        this.sphereColliders.push(collider);
-      }
+            const collider = this.world.createCollider(sphereDesc, groundRigidBody);
+            this.sphereColliders.push(collider);
+
+            // Create smaller spheres between points if not at the edge
+            if (x < this.xS && z < this.yS) {
+                // Get height at next points
+                const nextXIndex = (z * (this.xS + 1) + (x + this.sphereSpacing)) * 3;
+                const nextZIndex = ((z + this.sphereSpacing) * (this.xS + 1) + x) * 3;
+                const nextXZIndex = ((z + this.sphereSpacing) * (this.xS + 1) + (x + this.sphereSpacing)) * 3;
+
+                const heightX = positions.array[nextXIndex + 2];
+                const heightZ = positions.array[nextZIndex + 2];
+                const heightXZ = positions.array[nextXZIndex + 2];
+
+                // Calculate midpoints and heights as before
+                const midX = worldX + (this.sphereSpacing * this.xSize) / (2 * this.xS);
+                const midZ = worldZ + (this.sphereSpacing * this.ySize) / (2 * this.yS);
+                const midHeightXZ = (height + heightX + heightZ + heightXZ) / 4;
+
+                // Create smaller sphere sensor at center point
+                const smallerRadius = this.sphereRadius * 0.75;
+                const sphereDescCenter = RAPIER.ColliderDesc.ball(smallerRadius)
+                    .setTranslation(midX, midHeightXZ-smallerRadius/2, midZ)
+                    .setSensor(true);
+
+                this.sphereColliders.push(this.world.createCollider(sphereDescCenter, groundRigidBody));
+            }
+        }
     }
 
     if (State.debug) {
-      this.visualizeSphereColliders();
+        this.visualizeSphereColliders();
     }
   }
 
