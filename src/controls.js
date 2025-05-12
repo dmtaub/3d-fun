@@ -11,16 +11,29 @@ export class Controls {
     this.keys = createKeys();
 
     // Set up key handlers
-    this.keys.setupHandlers((code, isChanged, isPressed) => {
-      if (isChanged) {
-        this.handleKeyChange(code, isPressed);
-      }
-    });
+    this.keys.setupHandlers(this.handleKeyChange.bind(this));
   }
 
-  handleKeyChange(code, isPressed) {
-    // Handle specific key actions here if needed
-    // For example, toggle camera or other game-specific actions
+  handleKeyChange(code, isChanged, isPressed) {
+    if (this.terrain) {
+      switch(code) {
+        case 'Equal':
+          this.terrain.setTarget(2);
+          break;
+        case 'Minus':
+          this.terrain.setTarget(this.terrain.lastScale);
+          break;
+        case 'Digit0':
+          this.terrain.setTarget(0);
+          break;
+        case 'Digit1':
+          this.terrain.setTarget(1);
+          break;
+        case 'KeyE':
+          this.terrain.setTarget(Math.random());
+          break;
+      }
+    }
   }
 
   isDown(key) {
@@ -52,39 +65,6 @@ export class Controls {
 
   setupActions(terrain) {
     this.terrain = terrain;
-    // const doAfterDelay = () => {
-    //   this.jump();
-    // };
-    const delay = State.transition_time / 2;
-
-    window.addEventListener('keyup', (e) => {
-      switch(e.key.toLowerCase()) {
-        case '=':
-          this.terrain.setTarget(2); // "forward"
-          // if (this.terrain.lastScale < 1) {
-          //   // this.jump(); - was added to help a bug in the past
-          //   setTimeout(doAfterDelay, delay);
-          // }
-          break;
-        case '-':
-          this.terrain.setTarget(this.terrain.lastScale);
-          // if (this.terrain.lastScale > 1) {
-          //   // this.jump(); - was added to help a bug in the past
-          //   setTimeout(doAfterDelay, delay);
-          // }
-          break;
-        case '0':
-          this.terrain.setTarget(0);
-          break;
-        case '1':
-          this.terrain.setTarget(1);
-          break;
-        case 'e':
-          // legacy for Onyi and Steven
-          this.terrain.setTarget(Math.random());
-          break;
-      }
-    });
   }
 
 
