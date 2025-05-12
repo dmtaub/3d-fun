@@ -48,10 +48,6 @@ export function createKeys() {
       return changed;
     },
 
-    isPressed: function (key) {
-      return !!this.keys[key];
-    },
-
     clearChanges: function () {
       this.changedKeys = {};
     },
