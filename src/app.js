@@ -6,9 +6,17 @@ import { Player } from './player';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import * as TWEEN from '@tweenjs/tween.js';
 import * as RAPIER from '@dimforge/rapier3d-compat';
+import { createKeys } from './keys';
 
 export default class App {
   constructor() {
+    this.keys = createKeys();
+    this.keys.setupHandlers((code, isChanged, isPressed) => {
+      if (code === 'Escape' && isChanged) {
+        this.toggleCamera();
+      }
+    });
+
     this.config = State;
     this.initPhysics().then(() => {
       this.initScene();
@@ -54,19 +62,6 @@ export default class App {
     this.scene.add(this.camera);
     this.playerCamera = false;
 
-    // Add ESC key handler for camera toggle
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        if (this.playerCamera) {
-          this.playerCamera = false;
-          this.camera.position.set(60 * x, 50 * x, 60 * x);
-          this.camera.lookAt(this.scene.position);
-        } else {
-          this.playerCamera = true;
-        }
-      }
-    });
-
     // Light
     const light = new THREE.DirectionalLight(0xFFFFFF);
     light.position.set(20, 40, -15);
@@ -102,6 +97,16 @@ export default class App {
     });
   }
 
+  toggleCamera() {
+    if (this.playerCamera) {
+      this.playerCamera = false;
+      this.camera.position.set(60 * 2.5, 50 * 2.5, 60 * 2.5);
+      this.camera.lookAt(this.scene.position);
+    } else {
+      this.playerCamera = true;
+    }
+  }
+
   render() {
     requestAnimationFrame(() => this.render());
 
@@ -110,7 +115,7 @@ export default class App {
 
     // Update player physics
     if (this.player) {
-      this.player.update();
+      this.player.update(this.keys, 16); // Pass keys and delta time
     }
     TWEEN.update();
     this.renderer.render(this.scene, this.camera);
@@ -118,6 +123,9 @@ export default class App {
     if (State.enable_stats) {
       this.renderStats.update();
     }
+
+    // Clear key changes after processing
+    this.keys.clearChanges();
 
     if (this.player) {
       if (this.playerCamera) {
