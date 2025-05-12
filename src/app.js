@@ -12,7 +12,7 @@ export default class App {
   constructor() {
     this.keys = createKeys();
     this.keys.setupHandlers((code, isChanged, isPressed) => {
-      if (code === 'Escape' && isChanged) {
+      if (code === 'Escape' && isChanged && isPressed) {
         this.toggleCamera();
       }
     });
