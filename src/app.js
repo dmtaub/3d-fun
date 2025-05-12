@@ -143,6 +143,11 @@ export default class App {
       }
     }
 
+    // Update controls to process key states
+    if (this.controls) {
+      this.controls.update();
+    }
+
     if (State.fancy_ball) {
       this.cubeCamera.update(this.renderer, this.scene);
     }

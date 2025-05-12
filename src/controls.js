@@ -1,4 +1,5 @@
 import { State } from './state';
+import { createKeys } from './keys';
 
 export class Controls {
   get jumpVelocity() { return State.default_jump_velocity || 22; }
@@ -7,58 +8,35 @@ export class Controls {
 
   constructor(player) {
     this.player = player;
+    this.keys = createKeys();
 
-    this.linearDamping = 0.5;
-    this.angularDamping = 0.8;
-
-    // Set up keyboard controls with repeat
-    this.keys = {};
-    this.keyIntervals = {};
-
-    window.addEventListener('keydown', (e) => {
-      if (!this.keys[e.key]) {
-        this.keys[e.key] = true;
-        // console.log("KEY DOWN: ", e.key);
-        this.handleKeyPress(e.key);
-        // Start interval for held keys
-        this.keyIntervals[e.key] = setInterval(() => {
-          this.handleKeyPress(e.key);
-        }, 16); // ~60fps - TODO: confirm, make dynamic
+    // Set up key handlers
+    this.keys.setupHandlers((code, isChanged, isPressed) => {
+      if (isChanged) {
+        this.handleKeyChange(code, isPressed);
       }
     });
-
-    window.addEventListener('keyup', (e) => {
-      this.keys[e.key] = false;
-      if (this.keyIntervals[e.key]) {
-        clearInterval(this.keyIntervals[e.key]);
-        delete this.keyIntervals[e.key];
-      }
-    });
-
-    // Add convenience methods for querying key states
-    this.isDown = this.isDown.bind(this);
-    this.areDown = this.areDown.bind(this);
-    this.isAnyDown = this.isAnyDown.bind(this);
   }
 
-  // Returns true if the specified key is currently pressed down
+  handleKeyChange(code, isPressed) {
+    // Handle specific key actions here if needed
+    // For example, toggle camera or other game-specific actions
+  }
+
   isDown(key) {
-    return this.keys[key] === true;
+    return this.keys.oneIsPressed(key);
   }
 
-  // Returns true if all of the specified keys are currently pressed down
   areDown(keyArray) {
-    return keyArray.every(key => this.isDown(key));
+    return keyArray.every(key => this.keys.oneIsPressed(key));
   }
 
-  // Returns true if any of the specified keys are currently pressed down
   isAnyDown(keyArray) {
-    return keyArray.some(key => this.isDown(key));
+    return keyArray.some(key => this.keys.oneIsPressed(key));
   }
 
-  // Returns a copy of the current key state object
   getKeyStates() {
-    return {...this.keys};
+    return { ...this.keys.keys };
   }
 
   jump(scale = 2) {
@@ -110,7 +88,7 @@ export class Controls {
   }
 
 
-  handleKeyPress(key) {
+  handleKeyPress() {
     if (!this.player.rigidBody || State.disable_arrows) return;
 
     const velocity = this.player.rigidBody.linvel();
@@ -118,11 +96,10 @@ export class Controls {
     let newVel = { x: velocity.x, y: velocity.y, z: velocity.z };
     let newAngVel = { x: angVelocity.x, y: angVelocity.y, z: angVelocity.z };
 
-    // todo: consider moving this to game loop to sounds etc
     const contactGround = this.player.isOnGround();
     const useLinearVelocity = !State.roll_only;
-    // Use the new API to check for key states
-    if (this.isAnyDown(['ArrowRight', 'd'])) {
+
+    if (this.keys.oneIsPressed('ArrowRight', 'KeyD')) {
       if (useLinearVelocity) {
         newVel.x += this.linearFactor;
         newVel.z -= this.linearFactor;
@@ -133,7 +110,7 @@ export class Controls {
       }
     }
 
-    if (this.isAnyDown(['ArrowLeft', 'a'])) {
+    if (this.keys.oneIsPressed('ArrowLeft', 'KeyA')) {
       if (useLinearVelocity) {
         newVel.x -= this.linearFactor;
         newVel.z += this.linearFactor;
@@ -144,7 +121,7 @@ export class Controls {
       }
     }
 
-    if (this.isAnyDown(['ArrowUp', 'w'])) {
+    if (this.keys.oneIsPressed('ArrowUp', 'KeyW')) {
       if (useLinearVelocity) {
         newVel.x -= this.linearFactor;
         newVel.z -= this.linearFactor;
@@ -155,7 +132,7 @@ export class Controls {
       }
     }
 
-    if (this.isAnyDown(['ArrowDown', 's'])) {
+    if (this.keys.oneIsPressed('ArrowDown', 'KeyS')) {
       if (useLinearVelocity) {
         newVel.x += this.linearFactor;
         newVel.z += this.linearFactor;
@@ -166,7 +143,7 @@ export class Controls {
       }
     }
 
-    if (this.isDown(' ') && contactGround) {
+    if (this.keys.oneIsPressed('Space') && contactGround) {
       newVel.y = this.jumpVelocity;
     }
 
@@ -185,5 +162,10 @@ export class Controls {
       y: Math.max(State.min_vector.y, Math.min(State.max_vector.y, vec.y)),
       z: Math.max(State.min_vector.z, Math.min(State.max_vector.z, vec.z))
     };
+  }
+
+  update() {
+    // Call handleKeyPress during each update to process key states
+    this.handleKeyPress();
   }
 }
